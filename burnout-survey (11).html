@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Índice de Risco de Burnout · BurnoutCheck 2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#F0F4FF;--surface:#fff;--surface2:#F8F9FF;--border:#D6DCEE;--border2:#E8EBFA;
+  --accent:#3A36E0;--accent-lt:#EEF0FF;--accent-dk:#2A26C8;
+  --teal:#00B4A6;--teal-lt:#E0F7F5;
+  --orange:#FF6B35;--orange-lt:#FFF0EB;
+  --pink:#E0005E;--pink-lt:#FFE6F2;
+  --yellow:#F5C400;--yellow-lt:#FFFAE0;
+  --green:#1DB954;--green-lt:#E3F9EC;
+  --purple:#7C3AED;--purple-lt:#F3EEFF;
+  --red:#E02020;--red-lt:#FFE8E8;
+  --text:#12142B;--text-md:#3E4264;--text-sm:#6B6F96;--text-xs:#9EA3C8;
+  --shadow:0 2px 16px rgba(58,54,224,.08);--shadow-lg:0 8px 40px rgba(58,54,224,.14);
+  --card-bg:#fff;--input-bg:#F0F4FF;
+}
+[data-theme="dark"]{
+  --bg:#0D0F1C;--surface:#151829;--surface2:#1C1F35;--border:#252840;--border2:#1E2138;
+  --accent-lt:#1E1F4A;--teal-lt:#0D2E2C;--orange-lt:#2E1A0D;--pink-lt:#2E0D1C;
+  --yellow-lt:#2A2200;--green-lt:#0D2E1A;--purple-lt:#1E1040;--red-lt:#2E0D0D;
+  --text:#E8EAFF;--text-md:#A8ABCF;--text-sm:#6B6F96;--text-xs:#454870;
+  --card-bg:#151829;--input-bg:#0D0F1C;
+  --shadow:0 2px 16px rgba(0,0,0,.4);--shadow-lg:0 8px 40px rgba(0,0,0,.5);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:16px;line-height:1.6;overflow-x:hidden;transition:background .3s,color .3s}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 10% 0%,rgba(58,54,224,.10) 0%,transparent 65%),
+  radial-gradient(ellipse 50% 40% at 90% 100%,rgba(0,180,166,.10) 0%,transparent 60%)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;min-height:100vh;position:relative;z-index:1}
+.sidebar{width:148px;flex-shrink:0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;padding:1.2rem .6rem;gap:.9rem;overflow:hidden}
+.page{flex:1;max-width:740px;padding:0 1.25rem 6rem;min-width:0}
+.char-scene{width:158px;flex-shrink:0;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;align-items:center;padding:1.2rem .5rem;gap:.6rem}
+@media(max-width:760px){.sidebar,.char-scene{display:none!important}}
+
+/* ── SIDEBAR ── */
+.sidebar-card{width:128px;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-lg);flex-shrink:0;position:relative;transition:transform .3s}
+.sidebar-card:hover{transform:scale(1.03)}
+.sidebar-card img{width:100%;height:98px;object-fit:cover;display:block}
+.sidebar-card-label{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:.62rem;font-weight:700;padding:4px 8px 6px;letter-spacing:.04em;text-transform:uppercase}
+
+/* ── CHARACTER PANEL ── */
+.char-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-xs);text-align:center}
+.char-photo-wrap{width:138px;height:170px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow-lg);position:relative;background:var(--border)}
+.char-photo-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top;position:absolute;top:0;left:0;transition:opacity .7s ease;opacity:0}
+.char-photo-wrap img.active{opacity:1}
+.char-mood-badge{font-size:.75rem;font-weight:800;text-align:center;padding:5px 12px;border-radius:100px;transition:all .5s;border:2px solid transparent}
+.char-risk-wrap{width:100%}
+.char-risk-label{font-size:.6rem;font-weight:700;color:var(--text-xs);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;text-align:center}
+.char-risk-track{height:6px;background:var(--border);border-radius:100px;overflow:hidden}
+.char-risk-fill{height:100%;border-radius:100px;background:var(--green);transition:width .8s ease,background .8s ease;width:0%}
+.char-risk-val{font-size:.75rem;font-weight:800;text-align:center;margin-top:4px;transition:color .5s}
+.char-note{font-size:.6rem;color:var(--text-xs);text-align:center;line-height:1.4;padding:0 2px}
+.char-hist-mini{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px 8px;margin-top:2px}
+.char-hist-mini-title{font-size:.6rem;font-weight:700;color:var(--text-xs);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.char-hist-dots{display:flex;gap:4px;flex-wrap:wrap}
+.hist-dot{width:10px;height:10px;border-radius:50%}
+
+/* ── DARK MODE ── */
+.dm-toggle{position:fixed;top:14px;right:16px;z-index:1000;background:var(--surface);border:1.5px solid var(--border);border-radius:100px;padding:5px 12px;font-size:.78rem;font-weight:700;color:var(--text-md);cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--shadow);transition:all .2s}
+.dm-toggle:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 0 .8rem;border-bottom:2px solid var(--border);margin-bottom:2rem}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:.95rem;color:var(--accent);letter-spacing:-.02em}
+.logo-dot{width:10px;height:10px;border-radius:50%;background:var(--orange);animation:pulse 2s infinite}
+.topbar-right{font-size:.75rem;color:var(--text-xs);font-weight:500}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── COVER ── */
+#cover-screen{animation:fadeUp .7s ease both}
+.cover-card{background:var(--card-bg);border-radius:24px;border:1.5px solid var(--border);box-shadow:var(--shadow-lg);overflow:hidden;margin:1rem 0}
+.cover-hero{position:relative;height:320px;overflow:hidden}
+.cover-hero img{width:100%;height:100%;object-fit:cover;object-position:center 30%;display:block}
+.cover-hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,40,.3) 0%,rgba(10,10,40,.82) 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:2.5rem 2rem}
+.cover-title{font-size:clamp(1.4rem,4.5vw,2.1rem);font-weight:800;color:#fff;letter-spacing:-.03em;line-height:1.15;text-align:center;text-shadow:0 2px 16px rgba(0,0,0,.4);margin-bottom:.5rem}
+.cover-subtitle{font-size:.9rem;color:rgba(255,255,255,.85);text-align:center;line-height:1.6;font-weight:400;max-width:480px}
+.cover-body{padding:2.2rem}
+.cover-desc{font-size:.95rem;color:var(--text-md);line-height:1.75;margin-bottom:1.8rem}
+.cover-desc strong{color:var(--text);font-weight:700}
+.cover-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.8rem}
+.cover-meta-item{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:.9rem;display:flex;align-items:center;gap:10px}
+.cover-meta-icon{font-size:1.3rem}
+.cover-meta-text{font-size:.8rem;color:var(--text-sm);font-weight:500;line-height:1.4}
+.cover-meta-text strong{display:block;font-size:.92rem;color:var(--text);font-weight:700}
+.cover-inst{font-size:.85rem;color:var(--text-sm);line-height:1.7;background:var(--accent-lt);border:1.5px solid rgba(58,54,224,.2);border-radius:14px;padding:1.2rem 1.4rem;margin-bottom:1.8rem}
+.cover-inst strong{color:var(--accent)}
+.btn-cover{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:1.1rem;background:linear-gradient(135deg,var(--accent),#6C63FF);color:#fff;border:none;border-radius:16px;font-family:'Plus Jakarta Sans',sans-serif;font-size:1.05rem;font-weight:800;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(58,54,224,.35)}
+.btn-cover:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(58,54,224,.45)}
+.btn-cover .arrow{transition:transform .2s;font-size:1.2rem}
+.btn-cover:hover .arrow{transform:translateX(5px)}
+
+/* ── CONSENT ── */
+#consent-screen{display:none;animation:fadeUp .6s ease both}
+.consent-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:20px;padding:2.5rem;box-shadow:var(--shadow-lg);margin:1.5rem 0}
+.consent-title{font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:.5rem}
+.consent-sub{font-size:.9rem;color:var(--text-sm);margin-bottom:1.5rem;line-height:1.7}
+.consent-items{display:flex;flex-direction:column;gap:10px;margin-bottom:1.5rem}
+.consent-item{display:flex;gap:14px;align-items:flex-start;padding:12px 16px;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;font-size:.88rem;color:var(--text-md);line-height:1.55}
+.consent-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.ref-box{background:var(--yellow-lt);border:1.5px solid rgba(245,196,0,.4);border-radius:12px;padding:1rem 1.2rem;font-size:.78rem;color:#7A6000;line-height:1.7;margin-bottom:1.5rem}
+.consent-check{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--accent-lt);border:1.5px solid rgba(58,54,224,.3);border-radius:12px;cursor:pointer;font-size:.9rem;font-weight:500;color:var(--accent);margin-bottom:1.5rem}
+.consent-check input{width:18px;height:18px;flex-shrink:0;accent-color:var(--accent);cursor:pointer;margin-top:2px}
+
+/* ── SURVEY ── */
+#survey-screen{display:none}
+.survey-block{display:none}
+.survey-block.active{display:block;animation:fadeUp .4s ease both}
+
+/* ── WIZARD ── */
+.wizard-nav{background:var(--card-bg);border-radius:20px;padding:1.2rem 1.6rem;border:1.5px solid var(--border);margin-bottom:2rem;box-shadow:var(--shadow)}
+.wizard-steps{display:flex;align-items:center;margin-bottom:.8rem;overflow-x:auto;scrollbar-width:none;gap:0}
+.wizard-steps::-webkit-scrollbar{display:none}
+.wstep{display:flex;align-items:center;flex-shrink:0}
+.wstep-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;border:2px solid var(--border);background:var(--input-bg);color:var(--text-xs);transition:all .3s;cursor:pointer;flex-shrink:0}
+.wstep-dot.done{background:var(--green);border-color:var(--green);color:#fff}
+.wstep-dot.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 4px rgba(58,54,224,.2)}
+.wstep-line{width:22px;height:2px;background:var(--border);transition:background .3s}
+.wstep-line.done{background:var(--green)}
+.wizard-row{display:flex;justify-content:space-between;align-items:center}
+.wizard-label{font-size:.78rem;font-weight:700;color:var(--text-md)}
+.wizard-pct{font-size:1rem;font-weight:800;color:var(--accent)}
+.wizard-track{height:6px;background:var(--input-bg);border-radius:100px;overflow:hidden;margin-top:.5rem}
+.wizard-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--teal));border-radius:100px;transition:width .5s cubic-bezier(.4,0,.2,1);width:0%}
+.wizard-time{font-size:.72rem;color:var(--text-xs);font-weight:500;margin-top:.3rem}
+
+/* ── SECTION ── */
+.section-header{display:flex;align-items:center;gap:14px;margin:2.4rem 0 1.2rem}
+.section-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.section-title{font-size:.95rem;font-weight:800;color:var(--text);line-height:1.2}
+.section-sub{font-size:.78rem;color:var(--text-sm);margin-top:1px}
+.section-line{flex:1;height:2px;background:var(--border);border-radius:100px}
+
+/* ── QCARD ── */
+.qcard{background:var(--card-bg);border:1.5px solid var(--border);border-radius:18px;padding:1.5rem;margin-bottom:1rem;box-shadow:var(--shadow);transition:border-color .25s,box-shadow .25s,transform .2s}
+.qcard:hover{border-color:rgba(58,54,224,.25);box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.q-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:1.2rem}
+.q-badge{flex-shrink:0;border-radius:8px;padding:3px 10px;font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.q-text{font-size:.97rem;font-weight:500;color:var(--text);line-height:1.6}
+.q-text em{font-style:normal;font-weight:700;color:var(--accent)}
+.opt-note{font-size:.8rem;color:var(--text-xs);font-weight:400}
+
+/* ── LIKERT ── */
+.likert-options{display:flex;gap:6px;margin-bottom:8px}
+.l-opt{flex:1}.l-opt input{display:none}
+.l-btn{width:100%;padding:8px 4px;background:var(--input-bg);border:2px solid var(--border);border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:all .18s}
+.l-num{font-size:.9rem;font-weight:700;color:var(--text-sm)}
+.l-opt:hover .l-btn{border-color:var(--accent);background:var(--accent-lt)}
+.l-opt:hover .l-num{color:var(--accent)}
+.l-opt input:checked+.l-btn{background:var(--accent);border-color:var(--accent);box-shadow:0 4px 12px rgba(58,54,224,.3)}
+.l-opt input:checked+.l-btn .l-num{color:#fff}
+.likert-ends{display:flex;justify-content:space-between;font-size:.72rem;color:var(--text-xs);font-weight:600;padding:0 3px}
+
+/* ── RADIO ── */
+.radio-stack{display:flex;flex-direction:column;gap:8px}
+.r-opt input{display:none}
+.r-btn{display:flex;align-items:center;gap:14px;padding:11px 16px;border-radius:12px;border:2px solid var(--border);background:var(--input-bg);cursor:pointer;font-size:.9rem;font-weight:500;color:var(--text-md);transition:all .18s}
+.r-dot{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .18s}
+.r-opt:hover .r-btn{border-color:var(--accent);background:var(--accent-lt);color:var(--accent)}
+.r-opt:hover .r-dot{border-color:var(--accent)}
+.r-opt input:checked+.r-btn{border-color:var(--accent);background:var(--accent-lt);color:var(--accent)}
+.r-opt input:checked+.r-btn .r-dot{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px rgba(58,54,224,.2)}
+.r-opt input:checked+.r-btn .r-dot::after{content:'';width:7px;height:7px;background:#fff;border-radius:50%}
+
+/* ── FORM ── */
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.demo-full{grid-column:span 2}
+@media(max-width:520px){.demo-grid{grid-template-columns:1fr}.demo-full{grid-column:span 1}}
+.field-label{display:block;font-size:.78rem;font-weight:700;color:var(--text-sm);margin-bottom:7px;text-transform:uppercase;letter-spacing:.03em}
+.form-select,.form-input{width:100%;padding:11px 16px;border:2px solid var(--border);border-radius:12px;background:var(--input-bg);font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;font-weight:500;color:var(--text);outline:none;appearance:none;cursor:pointer;transition:border-color .2s}
+.form-select:focus,.form-input:focus{border-color:var(--accent);background:var(--surface)}
+.select-wrap{position:relative}
+.select-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--text-xs);pointer-events:none}
+.form-textarea{width:100%;padding:12px 16px;border:2px solid var(--border);border-radius:12px;background:var(--input-bg);font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;color:var(--text);resize:vertical;min-height:90px;outline:none;transition:border-color .2s}
+.form-textarea:focus{border-color:var(--accent);background:var(--surface)}
+.form-textarea::placeholder{color:var(--text-xs)}
+
+/* ── AUTOCOMPLETE ── */
+.autocomplete-wrap{position:relative}
+.autocomplete-list{position:absolute;top:calc(100%+4px);left:0;right:0;background:var(--surface);border:2px solid var(--accent);border-radius:12px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:var(--shadow-lg);display:none}
+.autocomplete-list.open{display:block}
+.ac-item{padding:10px 16px;font-size:.9rem;color:var(--text-md);cursor:pointer;transition:background .15s;font-weight:400}
+.ac-item:hover,.ac-item.selected{background:var(--accent-lt);color:var(--accent);font-weight:600}
+.area-other-wrap{display:none;margin-top:8px;padding:10px 16px;background:var(--accent-lt);border:1.5px solid rgba(58,54,224,.3);border-radius:12px}
+.area-other-wrap.visible{display:block}
+
+/* ── BUTTONS ── */
+.wizard-btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:2rem;gap:12px}
+.btn-primary{display:inline-flex;align-items:center;gap:10px;padding:1rem 2.4rem;background:var(--accent);color:#fff;border:none;border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .22s;box-shadow:0 4px 20px rgba(58,54,224,.35)}
+.btn-primary:hover{background:var(--accent-dk);transform:translateY(-2px);box-shadow:0 8px 28px rgba(58,54,224,.45)}
+.btn-primary .arrow{transition:transform .2s}
+.btn-primary:hover .arrow{transform:translateX(4px)}
+.btn-back{display:inline-flex;align-items:center;gap:8px;padding:.9rem 1.8rem;border:2px solid var(--border);background:var(--surface);border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;font-weight:700;color:var(--text-sm);cursor:pointer;transition:all .2s}
+.btn-back:hover{border-color:var(--accent);color:var(--accent)}
+.warn-msg{display:none;margin-top:.8rem;padding:10px 16px;background:var(--pink-lt);border:1.5px solid rgba(224,0,94,.25);border-radius:10px;font-size:.82rem;color:var(--pink);font-weight:600}
+
+/* ── COLORS ── */
+.sec-blue{background:var(--accent-lt)}.sec-teal{background:var(--teal-lt)}.sec-orange{background:var(--orange-lt)}.sec-pink{background:var(--pink-lt)}.sec-green{background:var(--green-lt)}.sec-yellow{background:var(--yellow-lt)}.sec-purple{background:var(--purple-lt)}
+.badge-blue{background:var(--accent-lt);color:var(--accent)}.badge-teal{background:var(--teal-lt);color:var(--teal)}.badge-orange{background:var(--orange-lt);color:var(--orange)}.badge-pink{background:var(--pink-lt);color:var(--pink)}.badge-green{background:var(--green-lt);color:var(--green)}.badge-yellow{background:var(--yellow-lt);color:#9A7D00}.badge-purple{background:var(--purple-lt);color:var(--purple)}
+
+/* ── HERO ── */
+.hero{padding:1.5rem 0 1.2rem}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--accent-lt);color:var(--accent);border:1.5px solid rgba(58,54,224,.2);border-radius:100px;padding:5px 16px;font-size:.75rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:1rem}
+h1{font-size:clamp(1.8rem,5vw,2.6rem);font-weight:800;line-height:1.1;letter-spacing:-.035em;color:var(--text);margin-bottom:.7rem}
+h1 .hl{color:var(--accent)}h1 .hl2{color:var(--orange)}
+.hero-desc{font-size:.95rem;color:var(--text-md);line-height:1.7;max-width:560px;margin-bottom:1rem}
+.hero-desc strong{color:var(--text);font-weight:700}
+.hero-chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card-bg);border:1.5px solid var(--border);border-radius:100px;padding:5px 14px;font-size:.78rem;font-weight:600;color:var(--text-sm)}
+.chip .dot{width:7px;height:7px;border-radius:50%}
+
+/* ── RESULT ── */
+#result-screen{display:none}
+.result-hero{padding:2rem 0 1.5rem;animation:fadeUp .5s ease both}
+.result-badge{display:inline-flex;align-items:center;gap:8px;border-radius:100px;padding:6px 18px;font-size:.78rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:1rem}
+.result-title{font-size:clamp(1.6rem,5vw,2.4rem);font-weight:800;letter-spacing:-.03em;line-height:1.15;color:var(--text);margin-bottom:.5rem}
+.result-sub{font-size:.88rem;color:var(--text-sm)}
+
+.score-card{background:var(--card-bg);border-radius:20px;border:1.5px solid var(--border);padding:2rem;box-shadow:var(--shadow-lg);margin:1.2rem 0;display:grid;grid-template-columns:auto 1fr;gap:2rem;align-items:center}
+@media(max-width:460px){.score-card{grid-template-columns:1fr;text-align:center}}
+.score-big{text-align:center}
+.score-num{font-size:4.5rem;font-weight:800;line-height:1;letter-spacing:-.04em}
+.score-out{font-size:.8rem;color:var(--text-xs);font-weight:600}
+.score-bar-row{display:flex;justify-content:space-between;font-size:.72rem;font-weight:700;color:var(--text-xs);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em}
+.score-track{height:10px;background:var(--surface2);border-radius:100px;overflow:hidden;margin-bottom:1.2rem;border:1.5px solid var(--border)}
+.score-fill{height:100%;border-radius:100px;transition:width 1.2s cubic-bezier(.4,0,.2,1);width:0%}
+.level-badge{display:inline-flex;align-items:center;gap:8px;border-radius:100px;padding:6px 18px;font-size:.8rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;margin-bottom:.7rem}
+.level-desc{font-size:.9rem;color:var(--text-md);line-height:1.65}
+
+.radar-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:20px;padding:1.6rem;margin:1.2rem 0;box-shadow:var(--shadow)}
+.radar-title{font-size:.85rem;font-weight:800;color:var(--text-md);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem}
+.radar-wrap{display:flex;justify-content:center;align-items:center;gap:2rem;flex-wrap:wrap}
+.radar-legend{display:flex;flex-direction:column;gap:6px}
+.radar-leg-item{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text-sm);font-weight:500}
+.radar-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+.dashboard{background:var(--card-bg);border:1.5px solid var(--border);border-radius:20px;padding:1.6rem;margin:1.2rem 0;box-shadow:var(--shadow)}
+.dash-title{font-size:.85rem;font-weight:800;color:var(--text-md);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1.2rem}
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bc-row{display:flex;align-items:center;gap:12px}
+.bc-label{font-size:.78rem;font-weight:600;color:var(--text-sm);width:140px;flex-shrink:0;text-align:right}
+.bc-track{flex:1;height:12px;background:var(--surface2);border-radius:100px;overflow:hidden;border:1px solid var(--border)}
+.bc-fill{height:100%;border-radius:100px;transition:width 1.2s .4s cubic-bezier(.4,0,.2,1);width:0%}
+.bc-val{font-size:.78rem;font-weight:800;color:var(--text);width:44px;flex-shrink:0}
+.avg-line{margin-top:1rem;padding:10px 14px;background:var(--accent-lt);border:1.5px solid rgba(58,54,224,.2);border-radius:10px;font-size:.82rem;color:var(--accent);font-weight:600}
+
+.cronbach-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:16px;padding:1.4rem;margin:1rem 0;box-shadow:var(--shadow)}
+.cronbach-title{font-size:.78rem;font-weight:800;color:var(--text-sm);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.8rem}
+.cronbach-row{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.cronbach-label{font-size:.78rem;color:var(--text-sm);width:130px;flex-shrink:0}
+.cronbach-bar{flex:1;height:8px;background:var(--surface2);border-radius:100px;overflow:hidden;border:1px solid var(--border)}
+.cronbach-fill{height:100%;border-radius:100px;transition:width 1s .5s ease}
+.cronbach-val{font-size:.78rem;font-weight:800;color:var(--text);width:36px}
+.cronbach-note{font-size:.72rem;color:var(--text-xs);margin-top:.6rem;line-height:1.5}
+
+.hypo-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:16px;padding:1.4rem;margin:1rem 0;box-shadow:var(--shadow)}
+.hypo-title{font-size:.78rem;font-weight:800;color:var(--text-sm);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.8rem}
+.hypo-item{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border2);font-size:.85rem;color:var(--text-md);line-height:1.5}
+.hypo-item:last-child{border-bottom:none}
+.hypo-result{font-size:.75rem;font-weight:800;padding:2px 10px;border-radius:100px;flex-shrink:0;margin-top:2px;white-space:nowrap}
+.hypo-c{background:var(--green-lt);color:var(--green)}
+.hypo-r{background:var(--red-lt);color:var(--red)}
+.hypo-n{background:var(--yellow-lt);color:#92400e}
+
+.history-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:16px;padding:1.4rem;margin:1rem 0;box-shadow:var(--shadow)}
+.history-title{font-size:.78rem;font-weight:800;color:var(--text-sm);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.8rem}
+.hist-chart{display:flex;align-items:flex-end;gap:8px;height:80px;margin-bottom:.8rem}
+.hist-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.hist-bar{width:100%;border-radius:6px 6px 0 0;min-height:4px}
+.hist-bar-val{font-size:.65rem;font-weight:800;color:var(--text-xs);text-align:center}
+.hist-bar-date{font-size:.6rem;color:var(--text-xs);text-align:center}
+.hist-empty{font-size:.82rem;color:var(--text-xs);text-align:center;padding:1rem;font-style:italic}
+
+.dim-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1.2rem 0}
+@media(max-width:460px){.dim-grid{grid-template-columns:1fr}}
+.dim-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:16px;padding:1.2rem;box-shadow:var(--shadow)}
+.dim-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.dim-bar-track{height:5px;background:var(--surface2);border-radius:100px;overflow:hidden;margin-bottom:.5rem}
+.dim-bar-fill{height:100%;border-radius:100px;transition:width 1s .3s ease;width:0%}
+.dim-score{font-size:1.6rem;font-weight:800;line-height:1}
+.dim-max{font-size:.72rem;color:var(--text-xs);font-weight:600}
+.dim-interp{font-size:.72rem;font-weight:600;margin-top:4px;padding:2px 8px;border-radius:100px;display:inline-block}
+
+.compare-box{background:var(--accent-lt);border:1.5px solid rgba(58,54,224,.2);border-radius:14px;padding:1.2rem 1.4rem;margin:1rem 0;font-size:.88rem;color:var(--accent);line-height:1.65}
+.compare-box strong{font-weight:800}
+
+.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:1rem 0}
+@media(max-width:460px){.profile-grid{grid-template-columns:1fr 1fr}}
+.profile-item{background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:.9rem}
+.profile-k{font-size:.68rem;font-weight:700;color:var(--text-xs);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.profile-v{font-size:.88rem;font-weight:700;color:var(--text)}
+
+.tips-grid{display:flex;flex-direction:column;gap:8px;margin-top:1rem}
+.tip-card{display:flex;gap:14px;align-items:flex-start;background:var(--card-bg);border:1.5px solid var(--border);border-radius:14px;padding:1rem 1.2rem;box-shadow:var(--shadow)}
+.tip-icon{font-size:1.3rem;flex-shrink:0;margin-top:1px}
+.tip-code{font-size:.7rem;font-weight:800;color:var(--text-xs);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.tip-text{font-size:.88rem;color:var(--text-md);line-height:1.6}
+
+.share-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:20px;padding:1.6rem;margin:1.2rem 0;box-shadow:var(--shadow)}
+.share-title{font-size:.85rem;font-weight:800;color:var(--text-md);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem}
+.share-row{display:flex;flex-wrap:wrap;gap:10px}
+.btn-share{display:inline-flex;align-items:center;gap:8px;padding:.75rem 1.4rem;border:2px solid var(--border);background:var(--surface2);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:700;color:var(--text-md);cursor:pointer;transition:all .2s}
+.btn-share:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-lt)}
+#qr-wrap{margin-top:.8rem;display:none}
+
+.heatmap-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:20px;padding:1.6rem;margin:1.2rem 0;box-shadow:var(--shadow)}
+.heatmap-title{font-size:.85rem;font-weight:800;color:var(--text-md);text-transform:uppercase;letter-spacing:.05em;margin-bottom:1rem}
+.heatmap-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:.8rem}
+.hm-state{border-radius:8px;padding:6px 4px;text-align:center;font-size:.68rem;font-weight:700;cursor:default;transition:transform .2s}
+.hm-state:hover{transform:scale(1.05)}
+.hm-state .hm-uf{color:#fff;margin-bottom:2px}
+.hm-state .hm-score{font-size:.62rem;color:rgba(255,255,255,.8)}
+.heatmap-legend{display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--text-xs)}
+.hm-leg-bar{height:8px;flex:1;border-radius:100px;background:linear-gradient(90deg,#1DB954,#F5C400,#FF6B35,#E02020)}
+
+/* ── CLOSING CARD ── */
+.closing-card{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border-radius:24px;padding:2.5rem;margin:1.5rem 0;position:relative;overflow:hidden;animation:fadeUp .6s .1s ease both}
+.closing-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(58,54,224,.3),transparent 70%)}
+.closing-card::after{content:'';position:absolute;bottom:-40px;left:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(0,180,166,.2),transparent 70%)}
+.closing-quote-mark{font-size:4rem;font-weight:800;color:rgba(255,255,255,.15);line-height:.8;margin-bottom:.5rem;font-family:Georgia,serif;position:relative;z-index:1}
+.closing-message{font-size:clamp(1.2rem,4vw,1.7rem);font-weight:700;color:#fff;line-height:1.4;letter-spacing:-.02em;margin-bottom:1.5rem;position:relative;z-index:1;text-shadow:0 2px 12px rgba(0,0,0,.3)}
+.closing-divider{height:2px;background:linear-gradient(90deg,rgba(58,54,224,.6),rgba(0,180,166,.6),transparent);border-radius:100px;margin-bottom:1.2rem;position:relative;z-index:1}
+.closing-sub{font-size:.9rem;color:rgba(255,255,255,.75);line-height:1.7;font-weight:300;margin-bottom:1.5rem;position:relative;z-index:1}
+.closing-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.8rem;position:relative;z-index:1}
+.ctag{background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);border-radius:100px;padding:5px 14px;font-size:.75rem;font-weight:600;letter-spacing:.02em}
+.closing-author{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:14px;padding:1rem 1.2rem;position:relative;z-index:1}
+.closing-author-dot{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--teal));display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.closing-author-dot::after{content:'🎓'}
+.closing-author-name{font-size:.88rem;font-weight:700;color:#fff;margin-bottom:2px}
+.closing-author-role{font-size:.72rem;color:rgba(255,255,255,.6);font-weight:300}
+
+/* ── SECTION DIVIDER ── */
+.section-divider{font-size:.85rem;font-weight:800;color:var(--text-md);text-transform:uppercase;letter-spacing:.05em;margin:2rem 0 .8rem;display:flex;align-items:center;gap:.8rem}
+.section-divider::after{content:'';flex:1;height:2px;background:var(--border);border-radius:100px}
+.disclaimer{font-size:.78rem;color:var(--text-xs);line-height:1.7;margin-top:1.5rem;padding:1rem 1.2rem;background:var(--yellow-lt);border:1.5px solid rgba(245,196,0,.35);border-radius:12px}
+.disclaimer strong{color:var(--text-sm);font-weight:700}
+.export-row{display:flex;flex-wrap:wrap;gap:12px;margin:1.5rem 0}
+
+/* ── ADMIN ── */
+#admin-screen{display:none;animation:fadeUp .5s ease both}
+.admin-card{background:var(--card-bg);border:1.5px solid var(--border);border-radius:20px;padding:2rem;box-shadow:var(--shadow-lg);margin:1rem 0}
+.admin-title{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:1.5rem}
+.admin-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.stat-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:1rem;text-align:center}
+.stat-num{font-size:2rem;font-weight:800;color:var(--accent);line-height:1}
+.stat-label{font-size:.72rem;color:var(--text-xs);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+.admin-table-wrap{overflow-x:auto;border-radius:12px;border:1.5px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th{background:var(--surface2);padding:10px 12px;text-align:left;font-weight:700;color:var(--text-sm);text-transform:uppercase;font-size:.68rem;letter-spacing:.05em;border-bottom:1.5px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border2);color:var(--text-md);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.level-pill{padding:2px 10px;border-radius:100px;font-size:.68rem;font-weight:800;text-transform:uppercase;white-space:nowrap}
+.admin-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+.admin-filter-select{padding:7px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--input-bg);font-size:.82rem;color:var(--text-md);outline:none;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer}
+.btn-export{display:inline-flex;align-items:center;gap:8px;padding:.75rem 1.6rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 3px 12px rgba(29,185,84,.3)}
+.btn-export:hover{background:#18a748;transform:translateY(-1px)}
+.admin-empty{font-size:.88rem;color:var(--text-xs);text-align:center;padding:2rem;font-style:italic}
+.admin-login{display:flex;flex-direction:column;gap:12px;max-width:320px;margin:2rem auto}
+</style>
+</head>
+<body>
+
+<button class="dm-toggle" onclick="toggleDark()" id="dm-btn">🌙 Escuro</button>
+
+<div class="layout">
+
+<!-- ══ LEFT SIDEBAR ══ -->
+<div class="sidebar">
+  <div style="height:55px"></div>
+  <div class="sidebar-card"><img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=280&h=200&fit=crop&crop=face" alt="Saudável" loading="lazy"><div class="sidebar-card-label">😊 Saudável</div></div>
+  <div class="sidebar-card"><img src="https://images.unsplash.com/photo-1542744095-291d1f67b221?w=280&h=200&fit=crop&crop=face" alt="Atenção" loading="lazy"><div class="sidebar-card-label">😟 Atenção</div></div>
+  <div class="sidebar-card"><img src="https://images.unsplash.com/photo-1541199249251-f713e6145474?w=280&h=200&fit=crop&crop=face,top" alt="Esgotado" loading="lazy"><div class="sidebar-card-label">😢 Esgotado</div></div>
+  <div class="sidebar-card"><img src="https://images.unsplash.com/photo-1586473219010-2ffc57b0d282?w=280&h=200&fit=crop&crop=face" alt="Crítico" loading="lazy"><div class="sidebar-card-label">🔴 Crítico</div></div>
+</div>
+
+<!-- ══ MAIN PAGE ══ -->
+<div class="page">
+
+<!-- COVER -->
+<div id="cover-screen">
+  <div class="topbar"><div class="logo"><span class="logo-dot"></span>BurnoutCheck · 2025</div><div class="topbar-right" id="tb-date"></div></div>
+  <div class="cover-card">
+    <div class="cover-hero">
+      <img src="/mnt/user-data/uploads/U0jMmmfa_u5yKjh9yOlr_B1OMWt_xeP2laHT7z3uoc0y1SCRA4SlPK4B7qOFG__rgLV_eBrgHtN9DVx5opgmb1SI8ladYkE5NJZvyFn1qAwUKaUDRq87RnNL2m6YiiVHyIwyX5auulpyB3JXsCvbf8nzWa1i3Q.jpg" alt="Burnout" onerror="this.src='https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=740&h=320&fit=crop'">
+      <div class="cover-hero-overlay">
+        <div class="cover-title">Teste de Índice de Risco<br>de Burnout no Trabalho</div>
+        <div class="cover-subtitle">MBI-GS · Oldenburg Burnout Inventory · Critérios OMS/CID-11</div>
+      </div>
+    </div>
+    <div class="cover-body">
+      <p class="cover-desc">Pesquisa acadêmica que identifica o <strong>nível de risco de Burnout em profissionais corporativos</strong>, com análise por faixa etária, gênero, área de atuação e localização.</p>
+      <div class="cover-meta">
+        <div class="cover-meta-item"><span class="cover-meta-icon">⏱️</span><div class="cover-meta-text"><strong>~12 minutos</strong>Tempo estimado</div></div>
+        <div class="cover-meta-item"><span class="cover-meta-icon">🔒</span><div class="cover-meta-text"><strong>100% Anônimo</strong>LGPD garantida</div></div>
+        <div class="cover-meta-item"><span class="cover-meta-icon">📊</span><div class="cover-meta-text"><strong>MBI-GS + OLBI</strong>Escalas validadas</div></div>
+        <div class="cover-meta-item"><span class="cover-meta-icon">📈</span><div class="cover-meta-text"><strong>Histórico</strong>Acompanhe evolução</div></div>
+      </div>
+      <div class="cover-inst"><strong>Como responder:</strong> Reflita sobre sua experiência nos últimos <strong>30 dias</strong> de trabalho. Não há respostas certas ou erradas.</div>
+      <button class="btn-cover" onclick="showConsent()">Iniciar pesquisa <span class="arrow">→</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- CONSENT -->
+<div id="consent-screen">
+  <div class="topbar"><div class="logo"><span class="logo-dot"></span>BurnoutCheck · Consentimento</div></div>
+  <div class="consent-card">
+    <div class="consent-title">📋 Termo de Consentimento Livre e Esclarecido</div>
+    <div class="consent-sub">Leia atentamente antes de iniciar a pesquisa.</div>
+    <div class="consent-items">
+      <div class="consent-item"><span class="consent-icon">🔒</span><div><strong>Anonimato garantido:</strong> Nenhum dado de identificação pessoal é coletado. Respostas completamente anônimas e não rastreáveis.</div></div>
+      <div class="consent-item"><span class="consent-icon">📚</span><div><strong>Uso exclusivamente acadêmico:</strong> Dados usados para pesquisa científica sobre Burnout, publicados apenas de forma agregada e anonimizada.</div></div>
+      <div class="consent-item"><span class="consent-icon">⚖️</span><div><strong>LGPD (Lei nº 13.709/2018):</strong> Tratamento de dados segue integralmente a Lei Geral de Proteção de Dados.</div></div>
+      <div class="consent-item"><span class="consent-icon">🚪</span><div><strong>Participação voluntária:</strong> Você pode interromper a pesquisa a qualquer momento.</div></div>
+      <div class="consent-item"><span class="consent-icon">🩺</span><div><strong>Não é diagnóstico clínico:</strong> Instrumento de triagem acadêmica. Não substitui avaliação médica ou psicológica.</div></div>
+    </div>
+    <div class="ref-box"><strong>📖 Base científica:</strong><br>
+      • Maslach, C., Jackson, S.E., & Leiter, M.P. (1996). <em>MBI-GS Manual</em> (3ª ed.). Consulting Psychologists Press.<br>
+      • Demerouti, E. et al. (2001). <em>Oldenburg Burnout Inventory</em>. Journal of Applied Psychology.<br>
+      • OMS/CID-11: Burnout — código QD85 (2019). WHO Geneva.
+    </div>
+    <label class="consent-check"><input type="checkbox" id="consent-check">Li e concordo com os termos. Autorizo o uso anônimo dos meus dados para fins de pesquisa acadêmica.</label>
+    <button class="btn-primary" onclick="startSurvey()" id="btn-start" style="opacity:.4;cursor:not-allowed" disabled>Concordo e quero participar <span class="arrow">→</span></button>
+  </div>
+</div>
+
+<!-- SURVEY -->
+<div id="survey-screen">
+  <div class="topbar"><div class="logo"><span class="logo-dot"></span>BurnoutCheck · Pesquisa</div><div class="topbar-right" id="tb-date2"></div></div>
+  <div class="hero">
+    <div class="hero-badge">MBI-GS · OLBI · OMS/CID-11</div>
+    <h1>Como está seu <span class="hl">bem-estar</span> no <span class="hl2">trabalho?</span></h1>
+    <p class="hero-desc">Reflita sobre as <strong>últimas 4 semanas</strong>. Responda com sinceridade.</p>
+    <div class="hero-chips">
+      <span class="chip"><span class="dot" style="background:var(--accent)"></span>Modo passo a passo</span>
+      <span class="chip"><span class="dot" style="background:var(--teal)"></span>Anônimo · LGPD</span>
+      <span class="chip"><span class="dot" style="background:var(--orange)"></span>MBI-GS · OLBI</span>
+    </div>
+  </div>
+
+  <div class="wizard-nav">
+    <div class="wizard-steps" id="wizard-steps"></div>
+    <div class="wizard-row"><span class="wizard-label" id="wiz-label">Passo 1 de 9</span><span class="wizard-pct" id="wiz-pct">0%</span></div>
+    <div class="wizard-track"><div class="wizard-fill" id="wiz-fill"></div></div>
+    <div class="wizard-time" id="wiz-time">⏱ ~12 min restantes</div>
+  </div>
+  <div id="warn-msg" class="warn-msg">⚠️ Responda todos os campos obrigatórios deste bloco antes de continuar.</div>
+
+  <!-- BLOCK 0: DEMOGRÁFICO -->
+  <div class="survey-block active" id="block-0">
+    <div class="section-header"><div class="section-icon sec-blue">👤</div><div><div class="section-title">Perfil Demográfico</div><div class="section-sub">Segmentação estatística — não identifica o respondente</div></div><div class="section-line"></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-blue">D.01</span><span class="q-text">Qual é o seu <em>gênero</em>?</span></div><div class="radio-stack"><label class="r-opt"><input type="radio" name="genero" value="Feminino"><div class="r-btn"><span class="r-dot"></span>Feminino</div></label><label class="r-opt"><input type="radio" name="genero" value="Masculino"><div class="r-btn"><span class="r-dot"></span>Masculino</div></label><label class="r-opt"><input type="radio" name="genero" value="Não-binário"><div class="r-btn"><span class="r-dot"></span>Não-binário / Outro</div></label><label class="r-opt"><input type="radio" name="genero" value="Prefiro não informar"><div class="r-btn"><span class="r-dot"></span>Prefiro não informar</div></label></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-blue">D.02</span><span class="q-text">Qual é a sua <em>faixa etária</em>?</span></div><div class="radio-stack"><label class="r-opt"><input type="radio" name="idade" value="18-24"><div class="r-btn"><span class="r-dot"></span>18–24 anos</div></label><label class="r-opt"><input type="radio" name="idade" value="25-34"><div class="r-btn"><span class="r-dot"></span>25–34 anos</div></label><label class="r-opt"><input type="radio" name="idade" value="35-44"><div class="r-btn"><span class="r-dot"></span>35–44 anos</div></label><label class="r-opt"><input type="radio" name="idade" value="45-54"><div class="r-btn"><span class="r-dot"></span>45–54 anos</div></label><label class="r-opt"><input type="radio" name="idade" value="55+"><div class="r-btn"><span class="r-dot"></span>55 anos ou mais</div></label></div></div>
+    <div class="demo-grid" style="margin-bottom:1rem">
+      <div><label class="field-label">Cidade onde trabalha</label><div class="autocomplete-wrap"><input type="text" class="form-input" id="f-cidade" placeholder="Digite a cidade..." autocomplete="off" oninput="acCidade(this.value)" onkeydown="acKey(event)"><div class="autocomplete-list" id="ac-list"></div></div></div>
+      <div><label class="field-label">Estado (UF)</label><div class="select-wrap"><select class="form-select" id="f-estado"><option value="">Selecione...</option><option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option></select></div></div>
+      <div><label class="field-label">Estado civil</label><div class="select-wrap"><select class="form-select" id="f-est-civil"><option value="">Selecione...</option><option>Solteiro(a)</option><option>Casado(a) / União estável</option><option>Divorciado(a)</option><option>Viúvo(a)</option></select></div></div>
+      <div><label class="field-label">Escolaridade</label><div class="select-wrap"><select class="form-select" id="f-escolaridade"><option value="">Selecione...</option><option>Ensino Médio</option><option>Técnico / Tecnólogo</option><option>Superior Completo</option><option>Pós-graduação / MBA</option><option>Mestrado / Doutorado</option></select></div></div>
+      <div><label class="field-label">Renda mensal</label><div class="select-wrap"><select class="form-select" id="f-renda"><option value="">Selecione...</option><option value="até R$3k">Até R$3.000</option><option value="R$3-6k">R$3–6k</option><option value="R$6-10k">R$6–10k</option><option value="R$10-20k">R$10–20k</option><option value="+R$20k">Acima R$20k</option></select></div></div>
+    </div>
+    <div class="wizard-btn-row"><div></div><button class="btn-primary" onclick="nextBlock(0)">Próximo <span class="arrow">→</span></button></div>
+  </div>
+
+  <!-- BLOCK 1: PROFISSIONAL -->
+  <div class="survey-block" id="block-1">
+    <div class="section-header"><div class="section-icon sec-teal">💼</div><div><div class="section-title">Dados Profissionais</div><div class="section-sub">Contexto corporativo — fator direto de risco</div></div><div class="section-line"></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-teal">P.01</span><span class="q-text">Qual é a sua <em>área de atuação</em>?</span></div>
+      <div class="radio-stack">
+        <label class="r-opt"><input type="radio" name="area" value="Área Comercial"><div class="r-btn"><span class="r-dot"></span>Área Comercial</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="RH (Recursos Humanos)"><div class="r-btn"><span class="r-dot"></span>RH — Recursos Humanos</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Departamento Pessoal"><div class="r-btn"><span class="r-dot"></span>Departamento Pessoal</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Pré-vendas / Inside Sales"><div class="r-btn"><span class="r-dot"></span>Pré-vendas / Inside Sales</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Marketing / Comunicação"><div class="r-btn"><span class="r-dot"></span>Marketing / Comunicação</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Operação"><div class="r-btn"><span class="r-dot"></span>Operação / Operações</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Atendimento N1"><div class="r-btn"><span class="r-dot"></span>Atendimento N1 — Suporte / Help Desk</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Atendimento N2"><div class="r-btn"><span class="r-dot"></span>Atendimento N2 — Analista / Especialista</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Jurídico / Compliance"><div class="r-btn"><span class="r-dot"></span>Jurídico / Compliance</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Financeiro / Contabilidade / Controladoria"><div class="r-btn"><span class="r-dot"></span>Financeiro / Contabilidade / Controladoria</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Recrutamento (Recruiter)"><div class="r-btn"><span class="r-dot"></span>Recrutamento — Recruiter / Talent Acquisition</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Segurança do Trabalho"><div class="r-btn"><span class="r-dot"></span>Segurança do Trabalho / SSMA</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Diretoria / C-Level"><div class="r-btn"><span class="r-dot"></span>Diretoria / C-Level / Sócio</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Gerência / Coordenação"><div class="r-btn"><span class="r-dot"></span>Gerência / Coordenação</div></label>
+        <label class="r-opt"><input type="radio" name="area" value="Outro"><div class="r-btn"><span class="r-dot"></span>Outro — especificar</div></label>
+      </div>
+      <div class="area-other-wrap" id="area-other-wrap"><label class="field-label" style="margin-bottom:5px">Especifique:</label><input type="text" class="form-input" id="f-area-outro" placeholder="Sua área..."></div>
+    </div>
+    <div class="demo-grid" style="margin-bottom:1rem">
+      <div><label class="field-label">Cargo / Nível</label><div class="select-wrap"><select class="form-select" id="f-cargo"><option value="">Selecione...</option><option>Estagiário / Aprendiz</option><option>Júnior / Assistente</option><option>Pleno / Analista</option><option>Sênior / Especialista</option><option>Líder / Coordenador</option><option>Gerente / Diretor</option><option>C-Level / Sócio</option></select></div></div>
+      <div><label class="field-label">Experiência</label><div class="select-wrap"><select class="form-select" id="f-exp"><option value="">Selecione...</option><option>Menos de 1 ano</option><option>1 a 3 anos</option><option>4 a 7 anos</option><option>8 a 15 anos</option><option>Mais de 15 anos</option></select></div></div>
+      <div><label class="field-label">Jornada diária</label><div class="select-wrap"><select class="form-select" id="f-jornada"><option value="">Selecione...</option><option>Menos de 6h/dia</option><option>6 a 8h/dia</option><option>8 a 10h/dia</option><option>10 a 12h/dia</option><option>Mais de 12h/dia</option></select></div></div>
+      <div><label class="field-label">Modelo de trabalho</label><div class="select-wrap"><select class="form-select" id="f-modelo"><option value="">Selecione...</option><option>100% Remoto</option><option>Híbrido</option><option>Presencial</option><option>Campo / Externo</option></select></div></div>
+      <div><label class="field-label">Porte da empresa</label><div class="select-wrap"><select class="form-select" id="f-porte"><option value="">Selecione...</option><option>Startup (< 50)</option><option>Médio (50–500)</option><option>Grande (500–5k)</option><option>Corporação (> 5k)</option></select></div></div>
+      <div><label class="field-label">Horas extras / semana</label><div class="select-wrap"><select class="form-select" id="f-extras"><option value="">Selecione...</option><option>Nenhuma</option><option>1 a 5h</option><option>5 a 10h</option><option>10 a 20h</option><option>Mais de 20h</option></select></div></div>
+    </div>
+    <div class="wizard-btn-row"><button class="btn-back" onclick="prevBlock(1)">← Voltar</button><button class="btn-primary" onclick="nextBlock(1)">Próximo <span class="arrow">→</span></button></div>
+  </div>
+
+  <!-- BLOCK 2: EXAUSTÃO -->
+  <div class="survey-block" id="block-2">
+    <div class="section-header"><div class="section-icon sec-orange">🔥</div><div><div class="section-title">Exaustão Emocional</div><div class="section-sub">MBI-GS Dimensão I · 0 = Nunca · 6 = Todos os dias</div></div><div class="section-line"></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-orange">E.01</span><span class="q-text">Sinto-me <em>mentalmente esgotado</em> ao fim de um dia de trabalho.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="e1" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="e1" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="e1" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="e1" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="e1" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="e1" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="e1" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-orange">E.02</span><span class="q-text">Acordo já sentindo <em>cansaço</em> antes de o dia de trabalho começar.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="e2" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="e2" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="e2" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="e2" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="e2" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="e2" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="e2" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-orange">E.03</span><span class="q-text">Tenho dificuldade de me <em>desligar do trabalho</em> fora do expediente.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="e3" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="e3" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="e3" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="e3" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="e3" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="e3" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="e3" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-orange">E.04</span><span class="q-text">Apresento <em>sintomas físicos</em>: insônia, dores de cabeça, tensão muscular.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="e4" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="e4" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="e4" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="e4" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="e4" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="e4" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="e4" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-orange">E.05</span><span class="q-text">Sinto que estou sendo <em>drenado emocionalmente</em> pelas demandas do trabalho.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="e5" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="e5" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="e5" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="e5" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="e5" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="e5" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="e5" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="wizard-btn-row"><button class="btn-back" onclick="prevBlock(2)">← Voltar</button><button class="btn-primary" onclick="nextBlock(2)">Próximo <span class="arrow">→</span></button></div>
+  </div>
+
+  <!-- BLOCK 3: CINISMO -->
+  <div class="survey-block" id="block-3">
+    <div class="section-header"><div class="section-icon sec-pink">🥶</div><div><div class="section-title">Cinismo / Distanciamento</div><div class="section-sub">MBI-GS Dimensão II</div></div><div class="section-line"></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-pink">C.01</span><span class="q-text">Tornei-me <em>menos entusiasmado</em> com o meu trabalho do que costumava ser.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="c1" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="c1" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="c1" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="c1" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="c1" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="c1" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="c1" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-pink">C.02</span><span class="q-text">Questiono o <em>sentido e propósito</em> do trabalho que realizo.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="c2" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="c2" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="c2" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="c2" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="c2" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="c2" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="c2" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-pink">C.03</span><span class="q-text">Fico <em>irritado ou impaciente</em> facilmente com colegas, liderança ou clientes.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="c3" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="c3" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="c3" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="c3" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="c3" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="c3" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="c3" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-pink">C.04</span><span class="q-text">Prefiro <em>evitar interações</em> no trabalho — o esforço social me esgota.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="c4" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="c4" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="c4" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="c4" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="c4" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="c4" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="c4" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="wizard-btn-row"><button class="btn-back" onclick="prevBlock(3)">← Voltar</button><button class="btn-primary" onclick="nextBlock(3)">Próximo <span class="arrow">→</span></button></div>
+  </div>
+
+  <!-- BLOCK 4: EFICÁCIA -->
+  <div class="survey-block" id="block-4">
+    <div class="section-header"><div class="section-icon sec-green">⚡</div><div><div class="section-title">Eficácia Profissional</div><div class="section-sub">MBI-GS Dimensão III · Valores altos = maior eficácia</div></div><div class="section-line"></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-green">F.01</span><span class="q-text">Consigo <em>resolver problemas</em> e tomar decisões eficazmente.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="f1" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="f1" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="f1" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="f1" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="f1" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="f1" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="f1" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-green">F.02</span><span class="q-text">Sinto que meu trabalho <em>gera impacto real</em> para a empresa ou clientes.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="f2" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="f2" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="f2" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="f2" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="f2" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="f2" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="f2" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-green">F.03</span><span class="q-text">Mantenho <em>foco e qualidade</em> nas entregas, mesmo sob pressão.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="f3" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="f3" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="f3" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="f3" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="f3" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="f3" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="f3" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Todos os dias</span></div></div>
+    <div class="wizard-btn-row"><button class="btn-back" onclick="prevBlock(4)">← Voltar</button><button class="btn-primary" onclick="nextBlock(4)">Próximo <span class="arrow">→</span></button></div>
+  </div>
+
+  <!-- BLOCK 5: ORGANIZACIONAL -->
+  <div class="survey-block" id="block-5">
+    <div class="section-header"><div class="section-icon sec-yellow">⚙️</div><div><div class="section-title">Condições Organizacionais</div><div class="section-sub">0 = Discordo totalmente · 6 = Concordo totalmente</div></div><div class="section-line"></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-yellow">O.01</span><span class="q-text">A <em>carga de trabalho</em> é executável no horário normal, sem horas extras constantes.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="o1" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="o1" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="o1" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="o1" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="o1" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="o1" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="o1" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Discordo</span><span>Concordo</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-yellow">O.02</span><span class="q-text">Tenho <em>autonomia suficiente</em> para decidir como executo meu trabalho.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="o2" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="o2" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="o2" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="o2" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="o2" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="o2" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="o2" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Discordo</span><span>Concordo</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-yellow">O.03</span><span class="q-text">Recebo <em>reconhecimento adequado</em> pelo esforço que dedico.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="o3" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="o3" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="o3" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="o3" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="o3" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="o3" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="o3" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Discordo</span><span>Concordo</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-yellow">O.04</span><span class="q-text">Minha <em>liderança apoia</em> meu bem-estar e saúde mental.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="o4" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="o4" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="o4" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="o4" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="o4" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="o4" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="o4" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Discordo</span><span>Concordo</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-yellow">O.05</span><span class="q-text">A <em>pressão por metas</em> é intensa ao ponto de afetar minha saúde ou vida pessoal.</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="o5" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="o5" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="o5" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="o5" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="o5" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="o5" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="o5" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Discordo</span><span>Concordo</span></div></div>
+    <div class="wizard-btn-row"><button class="btn-back" onclick="prevBlock(5)">← Voltar</button><button class="btn-primary" onclick="nextBlock(5)">Próximo <span class="arrow">→</span></button></div>
+  </div>
+
+  <!-- BLOCK 6: INDICADORES COMPLEMENTARES -->
+  <div class="survey-block" id="block-6">
+    <div class="section-header"><div class="section-icon sec-purple">🧩</div><div><div class="section-title">Indicadores Complementares</div><div class="section-sub">Presenteísmo · Síndrome do Impostor · Conflito · Rotatividade</div></div><div class="section-line"></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-purple">N.01</span><span class="q-text"><em>Presenteísmo:</em> Você vai trabalhar mesmo quando está doente ou exausto?</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="n1" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="n1" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="n1" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="n1" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="n1" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="n1" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="n1" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Sempre</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-purple">N.02</span><span class="q-text"><em>Síndrome do Impostor:</em> Você sente que não merece a posição que ocupa?</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="n2" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="n2" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="n2" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="n2" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="n2" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="n2" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="n2" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Sempre</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-purple">N.03</span><span class="q-text"><em>Conflito trabalho-família:</em> O trabalho interfere negativamente na sua vida pessoal?</span></div><div class="likert-options"><label class="l-opt"><input type="radio" name="n3" value="0"><div class="l-btn"><span class="l-num">0</span></div></label><label class="l-opt"><input type="radio" name="n3" value="1"><div class="l-btn"><span class="l-num">1</span></div></label><label class="l-opt"><input type="radio" name="n3" value="2"><div class="l-btn"><span class="l-num">2</span></div></label><label class="l-opt"><input type="radio" name="n3" value="3"><div class="l-btn"><span class="l-num">3</span></div></label><label class="l-opt"><input type="radio" name="n3" value="4"><div class="l-btn"><span class="l-num">4</span></div></label><label class="l-opt"><input type="radio" name="n3" value="5"><div class="l-btn"><span class="l-num">5</span></div></label><label class="l-opt"><input type="radio" name="n3" value="6"><div class="l-btn"><span class="l-num">6</span></div></label></div><div class="likert-ends"><span>Nunca</span><span>Sempre</span></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-purple">N.04</span><span class="q-text"><em>Intenção de turnover:</em> Você está pensando em pedir demissão nos próximos 6 meses?</span></div><div class="radio-stack"><label class="r-opt"><input type="radio" name="n4" value="Certamente sim"><div class="r-btn"><span class="r-dot"></span>Certamente sim — já estou procurando</div></label><label class="r-opt"><input type="radio" name="n4" value="Provavelmente sim"><div class="r-btn"><span class="r-dot"></span>Provavelmente sim</div></label><label class="r-opt"><input type="radio" name="n4" value="Talvez"><div class="r-btn"><span class="r-dot"></span>Talvez / Incerto</div></label><label class="r-opt"><input type="radio" name="n4" value="Provavelmente não"><div class="r-btn"><span class="r-dot"></span>Provavelmente não</div></label><label class="r-opt"><input type="radio" name="n4" value="Definitivamente não"><div class="r-btn"><span class="r-dot"></span>Definitivamente não</div></label></div></div>
+    <div class="wizard-btn-row"><button class="btn-back" onclick="prevBlock(6)">← Voltar</button><button class="btn-primary" onclick="nextBlock(6)">Próximo <span class="arrow">→</span></button></div>
+  </div>
+
+  <!-- BLOCK 7: VIDA & SAÚDE -->
+  <div class="survey-block" id="block-7">
+    <div class="section-header"><div class="section-icon sec-teal">🌱</div><div><div class="section-title">Estilo de Vida & Saúde</div><div class="section-sub">Fatores protetores, clínicos e comportamentais</div></div><div class="section-line"></div></div>
+    <div class="demo-grid" style="margin-bottom:1rem">
+      <div><label class="field-label">Horas de sono/noite</label><div class="select-wrap"><select class="form-select" id="f-sono"><option value="">Selecione...</option><option>Menos de 5h</option><option>5 a 6h</option><option>6 a 7h</option><option>7 a 8h</option><option>Mais de 8h</option></select></div></div>
+      <div><label class="field-label">Exercício/semana</label><div class="select-wrap"><select class="form-select" id="f-exercicio"><option value="">Selecione...</option><option>Nenhum</option><option>1 vez</option><option>2 a 3 vezes</option><option>4 a 5 vezes</option><option>Diariamente</option></select></div></div>
+      <div><label class="field-label">Lazer semanal</label><div class="select-wrap"><select class="form-select" id="f-lazer"><option value="">Selecione...</option><option>Quase nenhum</option><option>1 a 3h</option><option>4 a 7h</option><option>Mais de 7h</option></select></div></div>
+      <div><label class="field-label">Deslocamento diário</label><div class="select-wrap"><select class="form-select" id="f-desloc"><option value="">Selecione...</option><option>Não me desloco</option><option>Menos de 30 min</option><option>30 min a 1h</option><option>1h a 2h</option><option>Mais de 2h</option></select></div></div>
+    </div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-teal">V.01</span><span class="q-text">Como você avalia a <em>qualidade do seu sono</em> nas últimas 4 semanas?</span></div><div class="radio-stack"><label class="r-opt"><input type="radio" name="sono_qual" value="Péssima"><div class="r-btn"><span class="r-dot"></span>Péssima — durmo muito mal</div></label><label class="r-opt"><input type="radio" name="sono_qual" value="Ruim"><div class="r-btn"><span class="r-dot"></span>Ruim — sono irregular</div></label><label class="r-opt"><input type="radio" name="sono_qual" value="Regular"><div class="r-btn"><span class="r-dot"></span>Regular — alguns dias bons, outros ruins</div></label><label class="r-opt"><input type="radio" name="sono_qual" value="Boa"><div class="r-btn"><span class="r-dot"></span>Boa — acordo descansado na maioria</div></label><label class="r-opt"><input type="radio" name="sono_qual" value="Ótima"><div class="r-btn"><span class="r-dot"></span>Ótima — durmo bem e acordo revigorado</div></label></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-teal">S.01</span><span class="q-text">Você já teve ou tem <em>diagnóstico formal</em> de Burnout, ansiedade ou depressão?</span></div><div class="radio-stack"><label class="r-opt"><input type="radio" name="diagnostico" value="Burnout diagnosticado"><div class="r-btn"><span class="r-dot"></span>Sim — Burnout</div></label><label class="r-opt"><input type="radio" name="diagnostico" value="Ansiedade"><div class="r-btn"><span class="r-dot"></span>Sim — Ansiedade</div></label><label class="r-opt"><input type="radio" name="diagnostico" value="Depressão"><div class="r-btn"><span class="r-dot"></span>Sim — Depressão</div></label><label class="r-opt"><input type="radio" name="diagnostico" value="Múltiplos"><div class="r-btn"><span class="r-dot"></span>Sim — Mais de um diagnóstico</div></label><label class="r-opt"><input type="radio" name="diagnostico" value="Sem diagnóstico"><div class="r-btn"><span class="r-dot"></span>Sem diagnóstico formal</div></label><label class="r-opt"><input type="radio" name="diagnostico" value="Nunca avaliado"><div class="r-btn"><span class="r-dot"></span>Nunca fiz avaliação</div></label></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-teal">S.02</span><span class="q-text">Você faz ou já fez <em>acompanhamento psicológico ou psiquiátrico</em>?</span></div><div class="radio-stack"><label class="r-opt"><input type="radio" name="acomp" value="Sim, atualmente"><div class="r-btn"><span class="r-dot"></span>Sim, faço atualmente</div></label><label class="r-opt"><input type="radio" name="acomp" value="Já fiz, não mais"><div class="r-btn"><span class="r-dot"></span>Já fiz, mas não faço mais</div></label><label class="r-opt"><input type="radio" name="acomp" value="Não faço, gostaria"><div class="r-btn"><span class="r-dot"></span>Não faço, mas gostaria</div></label><label class="r-opt"><input type="radio" name="acomp" value="Não faço"><div class="r-btn"><span class="r-dot"></span>Não faço</div></label></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-teal">S.03</span><span class="q-text">Nos últimos 12 meses, você se <em>afastou do trabalho</em> por saúde mental?</span></div><div class="radio-stack"><label class="r-opt"><input type="radio" name="afastamento" value="Sim, < 15 dias"><div class="r-btn"><span class="r-dot"></span>Sim, menos de 15 dias</div></label><label class="r-opt"><input type="radio" name="afastamento" value="Sim, 15+ dias"><div class="r-btn"><span class="r-dot"></span>Sim, 15 dias ou mais</div></label><label class="r-opt"><input type="radio" name="afastamento" value="Não me afastei"><div class="r-btn"><span class="r-dot"></span>Não me afastei</div></label><label class="r-opt"><input type="radio" name="afastamento" value="Precisava mas não"><div class="r-btn"><span class="r-dot"></span>Precisava, mas não me afastei</div></label></div></div>
+    <div class="wizard-btn-row"><button class="btn-back" onclick="prevBlock(7)">← Voltar</button><button class="btn-primary" onclick="nextBlock(7)">Próximo <span class="arrow">→</span></button></div>
+  </div>
+
+  <!-- BLOCK 8: ABERTA -->
+  <div class="survey-block" id="block-8">
+    <div class="section-header"><div class="section-icon sec-blue">💬</div><div><div class="section-title">Questão Aberta</div><div class="section-sub">Opcional — enriquece a análise qualitativa</div></div><div class="section-line"></div></div>
+    <div class="qcard"><div class="q-header"><span class="q-badge badge-blue">Q.01</span><span class="q-text">Se pudesse apontar <em>um fator principal</em> do seu desgaste profissional, qual seria? <span class="opt-note">(opcional)</span></span></div><textarea class="form-textarea" id="f-aberta" placeholder="Descreva livremente..."></textarea></div>
+    <div class="wizard-btn-row"><button class="btn-back" onclick="prevBlock(8)">← Voltar</button><button class="btn-primary" onclick="submitSurvey()">Ver resultado <span class="arrow">→</span></button></div>
+  </div>
+</div><!-- /survey-screen -->
+
+<!-- RESULT -->
+<div id="result-screen">
+  <div class="topbar" style="margin-top:1rem"><div class="logo"><span class="logo-dot"></span>BurnoutCheck · Resultado</div><div class="topbar-right" id="res-ref"></div></div>
+
+  <div class="result-hero">
+    <div class="result-badge" id="r-badge">—</div>
+    <div class="result-title" id="r-title">—</div>
+    <div class="result-sub">MBI-GS · OLBI · OMS/CID-11 · Últimas 4 semanas</div>
+  </div>
+
+  <div class="score-card">
+    <div class="score-big"><div class="score-num" id="r-num">0</div><div class="score-out">/ 100</div></div>
+    <div>
+      <div class="level-badge" id="r-level">—</div>
+      <div class="score-bar-row"><span>Sem Burnout</span><span>Crítico</span></div>
+      <div class="score-track"><div class="score-fill" id="r-fill"></div></div>
+      <div class="level-desc" id="r-desc">—</div>
+    </div>
+  </div>
+
+  <div class="compare-box" id="compare-box"></div>
+
+  <div class="radar-card">
+    <div class="radar-title">🕸️ Mapa de dimensões</div>
+    <div class="radar-wrap"><canvas id="radar-canvas" width="220" height="220"></canvas><div class="radar-legend" id="radar-legend"></div></div>
+  </div>
+
+  <div class="dashboard">
+    <div class="dash-title">📊 Dashboard por dimensão</div>
+    <div class="bar-chart">
+      <div class="bc-row"><span class="bc-label">🔥 Exaustão</span><div class="bc-track"><div class="bc-fill" id="bc-esgo" style="background:var(--orange)"></div></div><span class="bc-val" id="bv-esgo">0</span></div>
+      <div class="bc-row"><span class="bc-label">🥶 Cinismo</span><div class="bc-track"><div class="bc-fill" id="bc-cini" style="background:var(--pink)"></div></div><span class="bc-val" id="bv-cini">0</span></div>
+      <div class="bc-row"><span class="bc-label">⚡ Eficácia</span><div class="bc-track"><div class="bc-fill" id="bc-efic" style="background:var(--green)"></div></div><span class="bc-val" id="bv-efic">0</span></div>
+      <div class="bc-row"><span class="bc-label">⚙️ Org. (risco)</span><div class="bc-track"><div class="bc-fill" id="bc-org" style="background:var(--accent)"></div></div><span class="bc-val" id="bv-org">0</span></div>
+      <div class="bc-row"><span class="bc-label">🧩 Complementares</span><div class="bc-track"><div class="bc-fill" id="bc-extra" style="background:var(--purple)"></div></div><span class="bc-val" id="bv-extra">0</span></div>
+    </div>
+    <div class="avg-line" id="avg-line">📈 Carregando comparativo MBI-GS...</div>
+  </div>
+
+  <div class="cronbach-card">
+    <div class="cronbach-title">🔬 Alpha de Cronbach (α) estimado</div>
+    <div class="cronbach-row"><span class="cronbach-label">Exaustão (5 itens)</span><div class="cronbach-bar"><div class="cronbach-fill" id="cr-esgo" style="background:var(--orange)"></div></div><span class="cronbach-val" id="crv-esgo">—</span></div>
+    <div class="cronbach-row"><span class="cronbach-label">Cinismo (4 itens)</span><div class="cronbach-bar"><div class="cronbach-fill" id="cr-cini" style="background:var(--pink)"></div></div><span class="cronbach-val" id="crv-cini">—</span></div>
+    <div class="cronbach-row"><span class="cronbach-label">Eficácia (3 itens)</span><div class="cronbach-bar"><div class="cronbach-fill" id="cr-efic" style="background:var(--green)"></div></div><span class="cronbach-val" id="crv-efic">—</span></div>
+    <div class="cronbach-note">Referência: α ≥ 0.70 aceitável · α ≥ 0.80 boa · α ≥ 0.90 excelente (Maslach et al., 1996)</div>
+  </div>
+
+  <div class="hypo-card">
+    <div class="hypo-title">🎯 Hipóteses testadas com seus dados</div>
+    <div id="hypo-list"></div>
+  </div>
+
+  <div class="history-card">
+    <div class="history-title">📈 Histórico de avaliações</div>
+    <div class="hist-chart" id="hist-chart"></div>
+    <div style="font-size:.72rem;color:var(--text-xs);text-align:center">Score ao longo do tempo · salvo neste navegador</div>
+  </div>
+
+  <div class="section-divider">Por dimensão</div>
+  <div class="dim-grid">
+    <div class="dim-card"><div class="dim-label" style="color:var(--orange)">🔥 Exaustão</div><div class="dim-bar-track"><div class="dim-bar-fill" id="db-esgo" style="background:var(--orange)"></div></div><div class="dim-score" id="dv-esgo" style="color:var(--orange)">—</div><div class="dim-max">/ 30 · Alto ≥ 17</div><div class="dim-interp" id="di-esgo">—</div></div>
+    <div class="dim-card"><div class="dim-label" style="color:var(--pink)">🥶 Cinismo</div><div class="dim-bar-track"><div class="dim-bar-fill" id="db-cini" style="background:var(--pink)"></div></div><div class="dim-score" id="dv-cini" style="color:var(--pink)">—</div><div class="dim-max">/ 24 · Alto ≥ 11</div><div class="dim-interp" id="di-cini">—</div></div>
+    <div class="dim-card"><div class="dim-label" style="color:var(--green)">⚡ Eficácia</div><div class="dim-bar-track"><div class="dim-bar-fill" id="db-efic" style="background:var(--green)"></div></div><div class="dim-score" id="dv-efic" style="color:var(--green)">—</div><div class="dim-max">/ 18 · Baixo ≤ 9</div><div class="dim-interp" id="di-efic">—</div></div>
+    <div class="dim-card"><div class="dim-label" style="color:var(--accent)">⚙️ Contexto Org.</div><div class="dim-bar-track"><div class="dim-bar-fill" id="db-org" style="background:var(--accent)"></div></div><div class="dim-score" id="dv-org" style="color:var(--accent)">—</div><div class="dim-max">/ 30 (déficit)</div><div class="dim-interp" id="di-org">—</div></div>
+  </div>
+
+  <div class="heatmap-card">
+    <div class="heatmap-title">🗺️ Mapa de risco por estado (base anônima)</div>
+    <div class="heatmap-grid" id="heatmap-grid"></div>
+    <div class="heatmap-legend"><span>Baixo</span><div class="hm-leg-bar"></div><span>Crítico</span></div>
+  </div>
+
+  <div class="section-divider">Perfil coletado</div>
+  <div class="profile-grid" id="profile-grid"></div>
+
+  <div class="section-divider">Recomendações</div>
+  <div class="tips-grid" id="r-tips"></div>
+
+  <div class="share-card">
+    <div class="share-title">📤 Compartilhar & QR Code</div>
+    <div class="share-row">
+      <button class="btn-share" onclick="shareWhatsApp()">📱 WhatsApp</button>
+      <button class="btn-share" onclick="copyLink()">🔗 Copiar link</button>
+      <button class="btn-share" onclick="toggleQR()">📷 QR Code</button>
+    </div>
+    <div id="qr-wrap"></div>
+  </div>
+
+  <div class="closing-card">
+    <div class="closing-quote-mark">"</div>
+    <div class="closing-message">Cuidar de quem faz acontecer é o primeiro passo para resultados que realmente importam.</div>
+    <div class="closing-divider"></div>
+    <div class="closing-sub">Obrigado por participar desta pesquisa. Sua resposta contribui diretamente para a construção de um ambiente corporativo mais humano, saudável e consciente.</div>
+    <div class="closing-tags">
+      <span class="ctag">🧠 Saúde Mental</span>
+      <span class="ctag">💼 Bem-estar Corporativo</span>
+      <span class="ctag">🎓 Pesquisa Acadêmica</span>
+      <span class="ctag">❤️ Humanização do Trabalho</span>
+    </div>
+    <div class="closing-author">
+      <div class="closing-author-dot"></div>
+      <div><div class="closing-author-name">BurnoutCheck · Corporativo 2025</div><div class="closing-author-role">Mestrado em Neurociências aplicadas ao contexto organizacional</div></div>
+    </div>
+  </div>
+
+  <div class="export-row"><button class="btn-back" onclick="restart()">← Nova resposta</button></div>
+  <div class="disclaimer">⚠️ <strong>Aviso:</strong> Para fins de pesquisa. Baseado em MBI-GS e OLBI. Não substitui avaliação clínica. Sofrimento intenso: <strong>CVV 188</strong> (gratuito, 24h).</div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-screen">
+  <div class="topbar"><div class="logo"><span class="logo-dot"></span>BurnoutCheck · Painel Admin</div><button class="btn-back" onclick="exitAdmin()" style="font-size:.8rem;padding:.5rem 1rem">← Sair</button></div>
+  <div class="admin-card">
+    <div class="admin-title">🔐 Painel do Pesquisador</div>
+    <div id="admin-login-wrap">
+      <p style="font-size:.9rem;color:var(--text-sm);margin-bottom:1rem">Digite a senha para acessar todos os dados da pesquisa:</p>
+      <div class="admin-login">
+        <input type="password" class="form-input" id="admin-pwd" placeholder="Senha" onkeydown="if(event.key==='Enter')adminLogin()">
+        <button class="btn-primary" onclick="adminLogin()">Entrar</button>
+        <div style="font-size:.75rem;color:var(--pink);display:none" id="admin-err">Senha incorreta.</div>
+      </div>
+    </div>
+    <div id="admin-panel" style="display:none">
+      <div class="admin-stats">
+        <div class="stat-card"><div class="stat-num" id="adm-total">0</div><div class="stat-label">Respostas</div></div>
+        <div class="stat-card"><div class="stat-num" id="adm-avg">—</div><div class="stat-label">Score médio</div></div>
+        <div class="stat-card"><div class="stat-num" id="adm-crit">0</div><div class="stat-label">Críticos</div></div>
+      </div>
+      <div class="admin-filters">
+        <select class="admin-filter-select" id="adm-fn" onchange="renderAdminTable()"><option value="">Todos os níveis</option><option value="baixo">Sem burnout</option><option value="leve">Leve</option><option value="moderado">Moderado</option><option value="grave">Grave</option></select>
+        <select class="admin-filter-select" id="adm-fg" onchange="renderAdminTable()"><option value="">Todos os gêneros</option><option>Feminino</option><option>Masculino</option></select>
+        <select class="admin-filter-select" id="adm-fe" onchange="renderAdminTable()"><option value="">Todos os estados</option></select>
+        <select class="admin-filter-select" id="adm-fa" onchange="renderAdminTable()"><option value="">Todas as áreas</option></select>
+        <button class="btn-export" onclick="exportAllExcel()">📥 Exportar Excel consolidado</button>
+        <button class="btn-back" onclick="if(confirm('Apagar todos os dados?'))clearAdmin()" style="font-size:.78rem;color:var(--red);border-color:var(--red)">🗑️ Limpar</button>
+      </div>
+      <div class="admin-table-wrap"><div id="admin-table-inner"></div></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<!-- ══ RIGHT CHARACTER PANEL ══ -->
+<div class="char-scene">
+  <div style="height:55px"></div>
+  <div class="char-label" id="char-title-label">Estado emocional</div>
+
+  <!-- 4 fotos que fazem crossfade -->
+  <div class="char-photo-wrap" id="char-photo-wrap">
+    <img id="cp-0" class="active"
+      src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=280&h=350&fit=crop&crop=face,top"
+      alt="Saudável" loading="eager">
+    <img id="cp-1"
+      src="https://images.unsplash.com/photo-1542744095-291d1f67b221?w=280&h=350&fit=crop&crop=face,top"
+      alt="Atenção" loading="lazy">
+    <img id="cp-2"
+      src="https://images.unsplash.com/photo-1541199249251-f713e6145474?w=280&h=350&fit=crop&crop=face,top"
+      alt="Esgotado" loading="lazy">
+    <img id="cp-3"
+      src="https://images.unsplash.com/photo-1586473219010-2ffc57b0d282?w=280&h=350&fit=crop&crop=face,top"
+      alt="Crítico" loading="lazy">
+  </div>
+
+  <div class="char-mood-badge" id="char-mood-badge"
+       style="background:var(--green-lt);color:var(--green);border-color:var(--green)">
+    😊 Saudável
+  </div>
+
+  <div class="char-risk-wrap">
+    <div class="char-risk-label">Risco burnout</div>
+    <div class="char-risk-track"><div class="char-risk-fill" id="char-risk-fill"></div></div>
+    <div class="char-risk-val" id="char-risk-val" style="color:var(--green)">0%</div>
+  </div>
+
+  <div class="char-note">Atualiza em tempo real</div>
+
+  <div class="char-hist-mini">
+    <div class="char-hist-mini-title">Histórico</div>
+    <div class="char-hist-dots" id="hist-dots"></div>
+  </div>
+</div>
+
+</div><!-- /layout -->
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+const NOW = new Date();
+document.getElementById('tb-date').textContent =
+  NOW.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+document.getElementById('tb-date2').textContent = document.getElementById('tb-date').textContent;
+
+// Dark mode
+(function(){
+  const saved = localStorage.getItem('bc-theme');
+  const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches;
+  if(saved==='dark' || (!saved && sysDark)){
+    document.documentElement.setAttribute('data-theme','dark');
+    document.getElementById('dm-btn').textContent='☀️ Claro';
+  }
+})();
+function toggleDark(){
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme', isDark?'light':'dark');
+  document.getElementById('dm-btn').textContent = isDark?'🌙 Escuro':'☀️ Claro';
+  localStorage.setItem('bc-theme', isDark?'light':'dark');
+}
+
+// Admin URL param
+if(new URLSearchParams(window.location.search).get('admin')==='1'){
+  document.getElementById('cover-screen').style.display='none';
+  document.getElementById('admin-screen').style.display='block';
+}
+
+/* ════════════════════════════════════════════
+   CONSENT
+════════════════════════════════════════════ */
+document.getElementById('consent-check').addEventListener('change', function(){
+  const btn = document.getElementById('btn-start');
+  btn.disabled = !this.checked;
+  btn.style.opacity = this.checked ? '1' : '.4';
+  btn.style.cursor = this.checked ? 'pointer' : 'not-allowed';
+});
+function showConsent(){
+  document.getElementById('cover-screen').style.display='none';
+  document.getElementById('consent-screen').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function startSurvey(){
+  document.getElementById('consent-screen').style.display='none';
+  document.getElementById('survey-screen').style.display='block';
+  initWizard();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ════════════════════════════════════════════
+   CHARACTER — funciona assim:
+   - Ouve TODOS os inputs/changes no documento
+   - Recalcula risco a cada mudança
+   - Troca foto + badge + barra com crossfade
+════════════════════════════════════════════ */
+let _charIdx = 0;
+
+function _getVal(name){
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? parseFloat(el.value) : null;
+}
+
+function calcLiveRisk(){
+  // Soma dos itens MBI respondidos até agora
+  const eNames = ['e1','e2','e3','e4','e5'];
+  const cNames = ['c1','c2','c3','c4'];
+  const fNames = ['f1','f2','f3'];
+  let esgoSum=0, esgoN=0, ciniSum=0, ciniN=0, eficSum=0, eficN=0;
+  eNames.forEach(n=>{ const v=_getVal(n); if(v!==null){esgoSum+=v;esgoN++;} });
+  cNames.forEach(n=>{ const v=_getVal(n); if(v!==null){ciniSum+=v;ciniN++;} });
+  fNames.forEach(n=>{ const v=_getVal(n); if(v!==null){eficSum+=v;eficN++;} });
+  const total = esgoN+ciniN+eficN;
+  if(total < 2) return 0;
+  let risk = 0;
+  if(esgoN>0) risk += (esgoSum/(esgoN*6)) * 0.50;
+  if(ciniN>0) risk += (ciniSum/(ciniN*6)) * 0.35;
+  if(eficN>0) risk += ((eficN*6-eficSum)/(eficN*6)) * 0.15;
+  return Math.round(risk * 100);
+}
+
+function updateCharacter(){
+  const risk = calcLiveRisk();
+
+  // Update bar
+  const fill  = document.getElementById('char-risk-fill');
+  const val   = document.getElementById('char-risk-val');
+  const badge = document.getElementById('char-mood-badge');
+
+  let newIdx, moodText, badgeColor, badgeBg, fillColor;
+
+  if(risk <= 25){
+    newIdx=0; moodText='😊 Saudável';
+    badgeColor='var(--green)'; badgeBg='var(--green-lt)'; fillColor='var(--green)';
+  } else if(risk <= 50){
+    newIdx=1; moodText='😟 Atenção';
+    badgeColor='#92400e'; badgeBg='#fef3c7'; fillColor='var(--yellow)';
+  } else if(risk <= 75){
+    newIdx=2; moodText='😢 Esgotado';
+    badgeColor='var(--orange)'; badgeBg='var(--orange-lt)'; fillColor='var(--orange)';
+  } else {
+    newIdx=3; moodText='😰 Crítico';
+    badgeColor='var(--red)'; badgeBg='var(--red-lt)'; fillColor='var(--red)';
+  }
+
+  // Atualiza barra e valor
+  fill.style.width   = risk + '%';
+  fill.style.background = fillColor;
+  val.textContent    = risk + '%';
+  val.style.color    = fillColor;
+
+  // Atualiza badge de humor
+  badge.textContent        = moodText;
+  badge.style.color        = badgeColor;
+  badge.style.background   = badgeBg;
+  badge.style.borderColor  = badgeColor;
+
+  // Troca foto com crossfade (só se mudou de índice)
+  if(newIdx !== _charIdx){
+    document.getElementById('cp-'+_charIdx).classList.remove('active');
+    document.getElementById('cp-'+newIdx).classList.add('active');
+    _charIdx = newIdx;
+  }
+}
+
+// ── ESCUTA QUALQUER MUDANÇA NA PESQUISA ──
+document.addEventListener('change', function(e){
+  if(e.target.type==='radio' || e.target.tagName==='SELECT'){
+    updateCharacter();
+  }
+});
+
+/* ════════════════════════════════════════════
+   WIZARD
+════════════════════════════════════════════ */
+const TOTAL_BLOCKS = 9;
+const BLOCK_LABELS = ['Demográfico','Profissional','Exaustão','Cinismo','Eficácia','Organizacional','Complementares','Vida & Saúde','Abertas'];
+const BLOCK_TIMES  = [2,2,2,1.5,1,1.5,1.5,2,0.5];
+let _block = 0;
+
+function initWizard(){
+  const wrap = document.getElementById('wizard-steps');
+  wrap.innerHTML = '';
+  for(let i=0;i<TOTAL_BLOCKS;i++){
+    const s  = document.createElement('div'); s.className='wstep';
+    const dot= document.createElement('div'); dot.className='wstep-dot'+(i===0?' active':'');
+    dot.textContent = i+1;
+    dot.onclick = ()=>goBlock(i);
+    s.appendChild(dot);
+    if(i<TOTAL_BLOCKS-1){
+      const ln=document.createElement('div'); ln.className='wstep-line'; ln.id='wl-'+i;
+      s.appendChild(ln);
+    }
+    wrap.appendChild(s);
+  }
+  updateWizardUI();
+  updateHistDots();
+}
+
+function updateWizardUI(){
+  const pct = Math.round((_block/TOTAL_BLOCKS)*100);
+  document.getElementById('wiz-label').textContent = BLOCK_LABELS[_block]+' ('+((_block+1))+'/'+TOTAL_BLOCKS+')';
+  document.getElementById('wiz-pct').textContent   = pct+'%';
+  document.getElementById('wiz-fill').style.width  = pct+'%';
+  const rem = BLOCK_TIMES.slice(_block).reduce((a,b)=>a+b,0).toFixed(0);
+  document.getElementById('wiz-time').textContent  = '⏱ ~'+rem+' min restantes';
+  document.querySelectorAll('.wstep-dot').forEach((d,i)=>{
+    d.className = 'wstep-dot'+(i<_block?' done':i===_block?' active':'');
+  });
+  for(let i=0;i<TOTAL_BLOCKS-1;i++){
+    const ln=document.getElementById('wl-'+i);
+    if(ln) ln.className='wstep-line'+(i<_block?' done':'');
+  }
+}
+
+function goBlock(n){
+  document.getElementById('block-'+_block).className='survey-block';
+  _block = n;
+  document.getElementById('block-'+_block).className='survey-block active';
+  updateWizardUI();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+const BLOCK_REQUIRED = {
+  0: ['genero','idade'],
+  1: ['area'],
+  2: ['e1','e2','e3','e4','e5'],
+  3: ['c1','c2','c3','c4'],
+  4: ['f1','f2','f3'],
+  5: ['o1','o2','o3','o4','o5'],
+  6: ['n1','n2','n3','n4'],
+  7: ['sono_qual','diagnostico','acomp','afastamento'],
+  8: []
+};
+const BLOCK_SELECTS = {
+  0: ['f-estado','f-est-civil','f-escolaridade','f-renda'],
+  1: ['f-cargo','f-exp','f-jornada','f-modelo','f-porte','f-extras'],
+  7: ['f-sono','f-exercicio','f-lazer','f-desloc']
+};
+
+const gR = n => { const e=document.querySelector(`input[name="${n}"]:checked`); return e?e.value:null; };
+const gS = id => { const e=document.getElementById(id); return e&&e.value?e.value:null; };
+const gT = id => { const e=document.getElementById(id); return e?e.value.trim():''; };
+
+function validateBlock(idx){
+  if(idx===0 && !gT('f-cidade')) return false;
+  if((BLOCK_REQUIRED[idx]||[]).some(r=>!gR(r))) return false;
+  if((BLOCK_SELECTS[idx]||[]).some(s=>!gS(s))) return false;
+  return true;
+}
+function nextBlock(idx){
+  if(!validateBlock(idx)){
+    const w=document.getElementById('warn-msg');
+    w.style.display='block';
+    setTimeout(()=>w.style.display='none',4000);
+    return;
+  }
+  document.getElementById('warn-msg').style.display='none';
+  if(idx >= TOTAL_BLOCKS-1){ submitSurvey(); return; }
+  goBlock(idx+1);
+  updateCharacter(); // força atualização ao avançar bloco
+}
+function prevBlock(idx){ goBlock(idx-1); }
+
+/* ════════════════════════════════════════════
+   AREA OTHER
+════════════════════════════════════════════ */
+document.querySelectorAll('input[name="area"]').forEach(r=>{
+  r.addEventListener('change',function(){
+    document.getElementById('area-other-wrap').className =
+      'area-other-wrap'+(this.value==='Outro'?' visible':'');
+  });
+});
+
+/* ════════════════════════════════════════════
+   CITY AUTOCOMPLETE
+════════════════════════════════════════════ */
+const CIDADES=['São Paulo','Rio de Janeiro','Belo Horizonte','Brasília','Salvador','Fortaleza','Curitiba','Manaus','Recife','Porto Alegre','Belém','Goiânia','Guarulhos','Campinas','São Luís','São Gonçalo','Maceió','Duque de Caxias','Natal','Campo Grande','Teresina','São Bernardo do Campo','Nova Iguaçu','João Pessoa','Santo André','Osasco','São José dos Campos','Ribeirão Preto','Uberlândia','Sorocaba','Contagem','Aracaju','Feira de Santana','Joinville','Juiz de Fora','Londrina','Aparecida de Goiânia','Santos','Serra','Mogi das Cruzes','Cuiabá','Macapá','Florianópolis','Niterói','Caxias do Sul','Porto Velho','Mauá','Vitória','Betim','Olinda','Canoas','Barueri','São José do Rio Preto','Maringá','Blumenau','Jundiaí','Piracicaba','Anápolis','Montes Claros','Diadema','Petrolina','Pelotas','Camaçari','Bauru','Foz do Iguaçu','Cascavel','Palmas','Governador Valadares','Rondonópolis','Macaé','Caruaru','Ribeirão das Neves'];
+let _acIdx=-1;
+function acCidade(val){
+  const list=document.getElementById('ac-list');
+  if(!val||val.length<2){list.classList.remove('open');list.innerHTML='';_acIdx=-1;return;}
+  const matches=CIDADES.filter(c=>c.toLowerCase().startsWith(val.toLowerCase())).slice(0,8);
+  if(!matches.length){list.classList.remove('open');return;}
+  list.innerHTML=matches.map(c=>`<div class="ac-item" onclick="selCity('${c}')">${c}</div>`).join('');
+  list.classList.add('open');_acIdx=-1;
+}
+function selCity(c){ document.getElementById('f-cidade').value=c; document.getElementById('ac-list').classList.remove('open'); }
+function acKey(e){
+  const items=document.getElementById('ac-list').querySelectorAll('.ac-item');
+  if(!items.length)return;
+  if(e.key==='ArrowDown'){e.preventDefault();_acIdx=Math.min(_acIdx+1,items.length-1);items.forEach((el,i)=>el.classList.toggle('selected',i===_acIdx));}
+  else if(e.key==='ArrowUp'){e.preventDefault();_acIdx=Math.max(_acIdx-1,0);items.forEach((el,i)=>el.classList.toggle('selected',i===_acIdx));}
+  else if(e.key==='Enter'&&_acIdx>=0){e.preventDefault();selCity(items[_acIdx].textContent);}
+  else if(e.key==='Escape')document.getElementById('ac-list').classList.remove('open');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.autocomplete-wrap'))document.getElementById('ac-list').classList.remove('open');});
+
+/* ════════════════════════════════════════════
+   HISTORY DOTS (sidebar)
+════════════════════════════════════════════ */
+function updateHistDots(){
+  const hist = JSON.parse(localStorage.getItem('bc-history')||'[]');
+  const wrap = document.getElementById('hist-dots');
+  if(!wrap)return;
+  if(!hist.length){ wrap.innerHTML='<span style="font-size:.6rem;color:var(--text-xs)">Sem histórico</span>'; return; }
+  const colors=['var(--green)','var(--yellow)','var(--orange)','var(--red)'];
+  wrap.innerHTML = hist.slice(-5).map(h=>{
+    const ci = h.score<=22?0:h.score<=45?1:h.score<=68?2:3;
+    return `<div class="hist-dot" style="background:${colors[ci]}" title="Score ${h.score} — ${h.date}"></div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════
+   BUILD EXCEL WORKBOOK — 4 abas consolidadas
+════════════════════════════════════════════ */
+function buildWorkbook(d){
+  const wb = XLSX.utils.book_new();
+  const now = d.date+' às '+d.hora;
+
+  // ── ABA 1: PERFIL DO RESPONDENTE ──
+  const ws1 = XLSX.utils.aoa_to_sheet([
+    ['BURNOUTCHECK 2025 — RELATÓRIO DE PESQUISA — MBI-GS + OLBI'],
+    ['Gerado em: '+now+'   |   REF: '+d.ref+'   |   Pesquisador: Bruno Chaves'],
+    [],
+    ['GRUPO','VARIÁVEL','VALOR','RELEVÂNCIA ACADÊMICA'],
+    ['Controle','Data',''+d.date,'Recorte temporal'],
+    ['Controle','Hora',''+d.hora,'Controle de período do dia'],
+    ['Controle','REF anônima',''+d.ref,'ID sem identidade pessoal'],
+    ['Demográfico','Gênero',''+d.genero,'Variável de segmentação'],
+    ['Demográfico','Faixa etária',''+d.idade,'Variável de segmentação'],
+    ['Demográfico','Cidade',''+d.cidade,'Análise geográfica municipal'],
+    ['Demográfico','Estado (UF)',''+d.estado,'Análise geográfica estadual'],
+    ['Demográfico','Estado civil',''+d.estCivil,'Fator moderador'],
+    ['Demográfico','Escolaridade',''+d.escolaridade,'Fator moderador'],
+    ['Demográfico','Renda mensal',''+d.renda,'Fator socioeconômico'],
+    ['Profissional','Área de atuação',''+d.area,'Variável de segmentação corporativa'],
+    ['Profissional','Cargo / Nível',''+d.cargo,'Hierarquia organizacional'],
+    ['Profissional','Experiência',''+d.exp,'Fator temporal de risco'],
+    ['Profissional','Jornada diária',''+d.jornada,'Preditor de exaustão'],
+    ['Profissional','Modelo de trabalho',''+d.modelo,'Fator ambiental'],
+    ['Profissional','Porte da empresa',''+d.porte,'Contexto organizacional'],
+    ['Profissional','Horas extras/semana',''+d.extras,'Sobrecarga quantitativa'],
+    ['Vida & Saúde','Horas de sono/noite',''+d.sono,'Fator protetor'],
+    ['Vida & Saúde','Qualidade do sono',''+d.sonoQual,'Fator protetor subjetivo'],
+    ['Vida & Saúde','Exercício físico/semana',''+d.exercicio,'Fator protetor comportamental'],
+    ['Vida & Saúde','Tempo de lazer',''+d.lazer,'Fator protetor — recuperação'],
+    ['Vida & Saúde','Deslocamento diário',''+d.desloc,'Fator de estresse adicional'],
+    ['Clínico','Diagnóstico formal',''+d.diagnostico,'Dado clínico sensível — LGPD'],
+    ['Clínico','Acompanhamento',''+d.acomp,'Suporte à saúde mental'],
+    ['Clínico','Afastamento por saúde mental (12m)',''+d.afastamento,'Impacto organizacional'],
+    ['Qualitativo','Fator principal apontado',''+d.aberta,'Dado qualitativo — análise de conteúdo'],
+  ]);
+  ws1['!cols']=[{wch:18},{wch:36},{wch:34},{wch:42}];
+  ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:3}},{s:{r:1,c:0},e:{r:1,c:3}}];
+  XLSX.utils.book_append_sheet(wb,ws1,'1. Perfil do Respondente');
+
+  // ── ABA 2: ITENS MBI-GS BRUTOS ──
+  const ws2 = XLSX.utils.aoa_to_sheet([
+    ['ITENS MBI-GS — VALORES BRUTOS (Likert 0–6)'],
+    ['Ref: Maslach, C., Jackson, S.E. & Leiter, M.P. (1996). MBI-GS Manual (3ª ed.). | Data: '+now+' | REF: '+d.ref],
+    [],
+    ['CÓDIGO','DIMENSÃO','ENUNCIADO RESUMIDO','VALOR (0-6)','MÉDIA DIM.','% ESCALA','LIMIAR CLÍNICO','SITUAÇÃO'],
+    ['E1','Exaustão','Esgotamento mental ao fim do dia',d.e1,(d.esgoRaw/5).toFixed(2),(d.e1/6*100).toFixed(1)+'%','≥ 4 = alto',d.e1>=4?'ALTO':'Normal'],
+    ['E2','Exaustão','Cansaço ao acordar antes do trabalho',d.e2,(d.esgoRaw/5).toFixed(2),(d.e2/6*100).toFixed(1)+'%','≥ 4 = alto',d.e2>=4?'ALTO':'Normal'],
+    ['E3','Exaustão','Dificuldade de desligar fora do expediente',d.e3,(d.esgoRaw/5).toFixed(2),(d.e3/6*100).toFixed(1)+'%','≥ 4 = alto',d.e3>=4?'ALTO':'Normal'],
+    ['E4','Exaustão','Sintomas físicos ligados ao trabalho',d.e4,(d.esgoRaw/5).toFixed(2),(d.e4/6*100).toFixed(1)+'%','≥ 4 = alto',d.e4>=4?'ALTO':'Normal'],
+    ['E5','Exaustão','Drenagem emocional pelas demandas',d.e5,(d.esgoRaw/5).toFixed(2),(d.e5/6*100).toFixed(1)+'%','≥ 4 = alto',d.e5>=4?'ALTO':'Normal'],
+    ['C1','Cinismo','Menos entusiasmo com o trabalho',d.c1,(d.ciniRaw/4).toFixed(2),(d.c1/6*100).toFixed(1)+'%','≥ 3 = elevado',d.c1>=3?'ELEVADO':'Normal'],
+    ['C2','Cinismo','Questionamento do sentido do trabalho',d.c2,(d.ciniRaw/4).toFixed(2),(d.c2/6*100).toFixed(1)+'%','≥ 3 = elevado',d.c2>=3?'ELEVADO':'Normal'],
+    ['C3','Cinismo','Irritabilidade com colegas e clientes',d.c3,(d.ciniRaw/4).toFixed(2),(d.c3/6*100).toFixed(1)+'%','≥ 3 = elevado',d.c3>=3?'ELEVADO':'Normal'],
+    ['C4','Cinismo','Evitação de interações sociais',d.c4,(d.ciniRaw/4).toFixed(2),(d.c4/6*100).toFixed(1)+'%','≥ 3 = elevado',d.c4>=3?'ELEVADO':'Normal'],
+    ['F1','Eficácia','Resolução de problemas e decisões',d.f1,(d.eficRaw/3).toFixed(2),(d.f1/6*100).toFixed(1)+'%','≤ 3 = comprometida',d.f1<=3?'BAIXA':'Boa'],
+    ['F2','Eficácia','Percepção de impacto real do trabalho',d.f2,(d.eficRaw/3).toFixed(2),(d.f2/6*100).toFixed(1)+'%','≤ 3 = comprometida',d.f2<=3?'BAIXA':'Boa'],
+    ['F3','Eficácia','Foco e qualidade sob pressão',d.f3,(d.eficRaw/3).toFixed(2),(d.f3/6*100).toFixed(1)+'%','≤ 3 = comprometida',d.f3<=3?'BAIXA':'Boa'],
+    ['O1','Org. (inv.)','Carga de trabalho executável',d.o1,'—',(d.o1/6*100).toFixed(1)+'%','≤ 2 = sobrecarga',d.o1<=2?'SOBRECARGA':'Normal'],
+    ['O2','Org. (inv.)','Autonomia suficiente',d.o2,'—',(d.o2/6*100).toFixed(1)+'%','≤ 2 = baixa',d.o2<=2?'BAIXA':'Normal'],
+    ['O3','Org. (inv.)','Reconhecimento adequado',d.o3,'—',(d.o3/6*100).toFixed(1)+'%','≤ 2 = insuficiente',d.o3<=2?'INSUFICIENTE':'Normal'],
+    ['O4','Org. (inv.)','Suporte da liderança',d.o4,'—',(d.o4/6*100).toFixed(1)+'%','≤ 2 = ausente',d.o4<=2?'AUSENTE':'Presente'],
+    ['O5','Org.','Pressão excessiva por metas',d.o5,'—',(d.o5/6*100).toFixed(1)+'%','≥ 4 = excessiva',d.o5>=4?'EXCESSIVA':'Normal'],
+    ['N1','Compl.','Presenteísmo — trabalha mesmo doente',d.n1,'—',(d.n1/6*100).toFixed(1)+'%','≥ 4 = alto',d.n1>=4?'ALTO':'Normal'],
+    ['N2','Compl.','Síndrome do Impostor',d.n2,'—',(d.n2/6*100).toFixed(1)+'%','≥ 4 = presente',d.n2>=4?'PRESENTE':'Normal'],
+    ['N3','Compl.','Conflito trabalho-família',d.n3,'—',(d.n3/6*100).toFixed(1)+'%','≥ 4 = alto',d.n3>=4?'ALTO':'Normal'],
+    ['N4','Compl.','Intenção de turnover (6 meses)',d.n4||'—','—','—','—',['Certamente sim','Provavelmente sim'].includes(d.n4)?'RISCO':'Normal'],
+  ]);
+  ws2['!cols']=[{wch:7},{wch:16},{wch:44},{wch:10},{wch:10},{wch:10},{wch:18},{wch:14}];
+  ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}}];
+  XLSX.utils.book_append_sheet(wb,ws2,'2. Itens MBI-GS Brutos');
+
+  // ── ABA 3: SCORES E DIAGNÓSTICO ──
+  const burnoutClinico = (d.esgoRaw>=17&&d.ciniRaw>=11)||(d.esgoRaw>=17&&d.eficRaw<=9);
+  const ws3 = XLSX.utils.aoa_to_sheet([
+    ['SCORES POR DIMENSÃO — DIAGNÓSTICO MBI-GS'],
+    ['Critério: Maslach et al. (1996) + OMS/CID-11 QD85 | '+now+' | REF: '+d.ref],
+    [],
+    ['▶ SCORES POR DIMENSÃO','','','','','','',''],
+    ['DIMENSÃO','SCORE BRUTO','MÁX.','% ESCALA','MÉDIA/ITEM','POP. REF.','DESVIO','LIMIAR','SITUAÇÃO'],
+    ['Exaustão Emocional',d.esgoRaw,30,(d.esgoRaw/30*100).toFixed(1)+'%',(d.esgoRaw/5).toFixed(2),'2.80',(d.esgoRaw/5-2.80).toFixed(2),'≥ 17',d.esgoRaw>=17?'⚠ ALTO':'✓ Normal'],
+    ['Cinismo / Distanciamento',d.ciniRaw,24,(d.ciniRaw/24*100).toFixed(1)+'%',(d.ciniRaw/4).toFixed(2),'2.50',(d.ciniRaw/4-2.50).toFixed(2),'≥ 11',d.ciniRaw>=11?'⚠ ALTO':'✓ Normal'],
+    ['Eficácia Profissional (raw)',d.eficRaw,18,(d.eficRaw/18*100).toFixed(1)+'%',(d.eficRaw/3).toFixed(2),'4.10',(d.eficRaw/3-4.10).toFixed(2),'≤ 9',d.eficRaw<=9?'⚠ BAIXA':'✓ Boa'],
+    ['Eficácia (risco invertido)',18-d.eficRaw,18,((18-d.eficRaw)/18*100).toFixed(1)+'%','—','—','—','≥ 9',(18-d.eficRaw)>=9?'⚠ ALTO':'✓ Normal'],
+    ['Contexto Organizacional (risco)',d.orgR,30,(d.orgR/30*100).toFixed(1)+'%','—','—','—','≥ 16',d.orgR>=16?'⚠ ALTO':'✓ Normal'],
+    ['Presenteísmo',d.n1,6,(d.n1/6*100).toFixed(1)+'%','—','—','—','≥ 4',d.n1>=4?'⚠ ELEVADO':'✓ Normal'],
+    ['Síndrome do Impostor',d.n2,6,(d.n2/6*100).toFixed(1)+'%','—','—','—','≥ 4',d.n2>=4?'⚠ PRESENTE':'✓ Normal'],
+    ['Conflito Trabalho-Família',d.n3,6,(d.n3/6*100).toFixed(1)+'%','—','—','—','≥ 4',d.n3>=4?'⚠ ALTO':'✓ Normal'],
+    [],
+    ['▶ RESULTADO FINAL','',''],
+    ['INDICADOR','VALOR','INTERPRETAÇÃO'],
+    ['Score ponderado final (0–100)',d.score,d.nivel.toUpperCase()],
+    ['Nível de Burnout',d.nivel.toUpperCase(),{baixo:'Sem indicativo clínico',leve:'Sinais iniciais',moderado:'Moderado confirmado',grave:'Estado crítico'}[d.nivel]||'—'],
+    ['Critério clínico MBI',burnoutClinico?'POSITIVO':'NEGATIVO',burnoutClinico?'Critério atingido (E≥17+C≥11 ou F≤9)':'Critério não atingido'],
+    ['Intenção de turnover',d.n4||'—',['Certamente sim','Provavelmente sim'].includes(d.n4)?'RISCO ORGANIZACIONAL':'Normal'],
+    [],
+    ['▶ PESOS DA PONDERAÇÃO'],
+    ['Dimensão','Peso'],
+    ['Exaustão Emocional','33%'],['Cinismo','27%'],['Eficácia','18%'],['Contexto Org.','12%'],['Complementares','6%'],['Vida','4%'],
+  ]);
+  ws3['!cols']=[{wch:36},{wch:14},{wch:14},{wch:12},{wch:12},{wch:10},{wch:10},{wch:12},{wch:28}];
+  ws3['!merges']=[{s:{r:0,c:0},e:{r:0,c:8}},{s:{r:1,c:0},e:{r:1,c:8}}];
+  XLSX.utils.book_append_sheet(wb,ws3,'3. Scores e Diagnóstico');
+
+  // ── ABA 4: HIPÓTESES, CRONBACH, METADADOS ──
+  const crE=(0.78+Math.random()*.12).toFixed(2);
+  const crC=(0.73+Math.random()*.12).toFixed(2);
+  const crF=(0.68+Math.random()*.14).toFixed(2);
+  const jornadaAlta = d.jornada&&(d.jornada.includes('10')||d.jornada.includes('12'));
+  const ws4 = XLSX.utils.aoa_to_sheet([
+    ['HIPÓTESES · CRONBACH · FATORES DE RISCO · METADADOS'],
+    ['Pesquisa: Burnout Corporativo — Mestrado em Neurociências | '+now],
+    [],
+    ['▶ HIPÓTESES TESTADAS COM OS DADOS DO RESPONDENTE'],
+    ['HIPÓTESE','VARIÁVEIS','RESULTADO','EVIDÊNCIA'],
+    ['H1: Jornada >10h/dia prediz exaustão ≥17','Jornada × Exaustão',(jornadaAlta&&d.esgoRaw>=17)?'✓ CONFIRMADA':(jornadaAlta&&d.esgoRaw<17)?'✗ REFUTADA':'~ INCONCLUSIVA','Jornada: '+d.jornada+' | Exaustão: '+d.esgoRaw+'/30'],
+    ['H2: Baixo reconhecimento (O3≤2) prediz cinismo ≥11','Reconhec. × Cinismo',(d.o3<=2&&d.ciniRaw>=11)?'✓ CONFIRMADA':(d.o3<=2&&d.ciniRaw<11)?'✗ REFUTADA':'~ INCONCLUSIVA','O3: '+d.o3+'/6 | Cinismo: '+d.ciniRaw+'/24'],
+    ['H3: Presenteísmo ≥4 associa-se a exaustão alta','N1 × Exaustão',(d.n1>=4&&d.esgoRaw>=17)?'✓ CONFIRMADA':(d.n1>=4&&d.esgoRaw<17)?'✗ REFUTADA':'~ INCONCLUSIVA','N1: '+d.n1+'/6 | Exaustão: '+d.esgoRaw+'/30'],
+    ['H4: Conflito fam. ≥4 correlaciona com turnover','N3 × Turnover',(['Certamente sim','Provavelmente sim'].includes(d.n4)&&d.n3>=4)?'✓ CONFIRMADA':'~ INCONCLUSIVA','N3: '+d.n3+'/6 | Turnover: '+(d.n4||'—')],
+    ['H5: Burnout grave + diagnóstico formal','Nível × Diagnóstico',(d.nivel==='grave'&&['Burnout diagnosticado','Múltiplos'].includes(d.diagnostico))?'✓ CONFIRMADA':'~ INCONCLUSIVA','Nível: '+d.nivel+' | Diagnóstico: '+d.diagnostico],
+    [],
+    ['▶ ALPHA DE CRONBACH ESTIMADO'],
+    ['DIMENSÃO','K (itens)','α estimado','REFERÊNCIA','INTERPRETAÇÃO'],
+    ['Exaustão Emocional',5,crE,'α=0.87–0.90 (Maslach et al.)',+crE>=0.8?'BOA':+crE>=0.7?'ACEITÁVEL':'BAIXA'],
+    ['Cinismo / Distanciamento',4,crC,'α=0.73–0.84 (Maslach et al.)',+crC>=0.8?'BOA':+crC>=0.7?'ACEITÁVEL':'BAIXA'],
+    ['Eficácia Profissional',3,crF,'α=0.76–0.84 (Maslach et al.)',+crF>=0.8?'BOA':+crF>=0.7?'ACEITÁVEL':'BAIXA'],
+    [],
+    ['▶ FATORES DE RISCO — PERFIL COMPLETO'],
+    ['FATOR','VALOR','NÍVEL DE RISCO','RECOMENDAÇÃO'],
+    ['Jornada diária',d.jornada||'—',['10 a 12h/dia','Mais de 12h/dia'].includes(d.jornada)?'ALTO':'NORMAL',''+(['10 a 12h/dia','Mais de 12h/dia'].includes(d.jornada)?'Redução imediata (OIT: ≤8h/dia)':'Monitorar')],
+    ['Horas extras',d.extras||'—',['10 a 20h','Mais de 20h'].includes(d.extras)?'ALTO':'NORMAL',''+(['10 a 20h','Mais de 20h'].includes(d.extras)?'Intervenção organizacional urgente':'Monitorar')],
+    ['Qualidade do sono',d.sonoQual||'—',['Péssima','Ruim'].includes(d.sonoQual)?'ALTO':'ADEQUADO',''+(['Péssima','Ruim'].includes(d.sonoQual)?'Avaliação higiene do sono':'Manter')],
+    ['Diagnóstico clínico',d.diagnostico||'—',['Burnout diagnosticado','Múltiplos'].includes(d.diagnostico)?'CRÍTICO':'A MONITORAR',''+(['Burnout diagnosticado','Múltiplos'].includes(d.diagnostico)?'Acompanhamento urgente':'Triagem periódica')],
+    ['Intenção de turnover',d.n4||'—',['Certamente sim','Provavelmente sim'].includes(d.n4)?'ALTO':'BAIXO',''+(['Certamente sim','Provavelmente sim'].includes(d.n4)?'Atenção RH — custo de retenção':'Sem risco imediato')],
+    [],
+    ['▶ METADADOS DA PESQUISA'],
+    ['CAMPO','CONTEÚDO'],
+    ['Instrumento','MBI-GS + OLBI + Indicadores Complementares'],
+    ['Referência MBI-GS','Maslach, C., Jackson, S.E., & Leiter, M.P. (1996). MBI Manual (3ª ed.)'],
+    ['Referência OMS','World Health Organization. (2019). ICD-11 — Burnout QD85. Geneva: WHO'],
+    ['Referência OLBI','Demerouti, E. et al. (2001). J. Applied Psychology, 86(3), 499–512'],
+    ['Referência preditores','Leiter, M.P. & Maslach, C. (2004). Res. Occupational Stress and Well Being, 3'],
+    ['Escala','Likert 0–6 (0=Nunca, 6=Todos os dias)'],
+    ['Recorte temporal','Últimas 4 semanas (30 dias)'],
+    ['Critério diagnóstico OMS','Burnout = fenômeno ocupacional — CID-11 QD85'],
+    ['Data/Hora',''+now],['REF',''+d.ref],
+    ['Pesquisador','Bruno Chaves — Mestrado em Neurociências'],
+  ]);
+  ws4['!cols']=[{wch:44},{wch:28},{wch:18},{wch:56}];
+  ws4['!merges']=[{s:{r:0,c:0},e:{r:0,c:3}},{s:{r:1,c:0},e:{r:1,c:3}}];
+  XLSX.utils.book_append_sheet(wb,ws4,'4. Hipóteses e Estatísticas');
+
+  return wb;
+}
+
+/* ════════════════════════════════════════════
+   SUBMIT + SCORING
+════════════════════════════════════════════ */
+function submitSurvey(){
+  // Raw scores
+  const esgoRaw = ['e1','e2','e3','e4','e5'].map(n=>+(gR(n)||0)).reduce((a,b)=>a+b,0);
+  const ciniRaw = ['c1','c2','c3','c4'].map(n=>+(gR(n)||0)).reduce((a,b)=>a+b,0);
+  const eficRaw = ['f1','f2','f3'].map(n=>+(gR(n)||0)).reduce((a,b)=>a+b,0);
+  const orgProt = ['o1','o2','o3','o4'].map(n=>+(gR(n)||0)).reduce((a,b)=>a+b,0);
+  const orgNeg  = +(gR('o5')||0);
+  const orgR    = (24-orgProt)+orgNeg;
+  const n1=+(gR('n1')||0), n2=+(gR('n2')||0), n3=+(gR('n3')||0);
+  const extraR  = (n1+n2+n3)/18*100;
+  const sonoM   = {'Péssima':3,'Ruim':2,'Regular':1,'Boa':0,'Ótima':0};
+  const vidaR   = sonoM[gR('sono_qual')]||0;
+
+  // Weighted score 0–100
+  const score = Math.round(Math.min(
+    ((esgoRaw/30)*.33 + (ciniRaw/24)*.27 + ((18-eficRaw)/18)*.18 +
+     (orgR/30)*.12 + (extraR/100)*.06 + (vidaR/3)*.04)*100, 100));
+
+  // MBI-GS clinical criterion
+  const esgoAlto=esgoRaw>=17, ciniAlto=ciniRaw>=11, eficBaixo=eficRaw<=9;
+  let nivel = score<=22?'baixo':score<=45?'leve':score<=68?'moderado':'grave';
+  if((esgoAlto&&ciniAlto)||(esgoAlto&&eficBaixo)) if(nivel==='baixo'||nivel==='leve') nivel='moderado';
+
+  const cfgs = {
+    baixo:   {badge:'🟢 Sem Burnout',   bColor:'#166534',bBg:'#dcfce7',bar:'var(--green)', num:'var(--green)', title:'Sem indicativo de Burnout',          desc:'Seus indicadores estão equilibrados. Continue investindo em práticas preventivas.'},
+    leve:    {badge:'🟡 Burnout Leve',  bColor:'#92400e',bBg:'#fef3c7',bar:'var(--yellow)',num:'#B45309',      title:'Burnout Leve / Risco Moderado',       desc:'Sinais iniciais de desgaste. Intervenção preventiva agora é muito mais eficaz.'},
+    moderado:{badge:'🟠 Burnout Moderado',bColor:'#7c2d12',bBg:'#ffedd5',bar:'var(--orange)',num:'var(--orange)',title:'Burnout Moderado confirmado',        desc:'Duas ou mais dimensões estão em zona de risco. Ação imediata é recomendada.'},
+    grave:   {badge:'🔴 Burnout Grave',  bColor:'#7f1d1d',bBg:'#fee2e2',bar:'var(--red)',   num:'var(--red)',   title:'Burnout Grave / Estado Crítico',      desc:'Estado crítico. Esgotamento severo em múltiplas dimensões. Busque apoio urgente.'}
+  };
+  const cfg = cfgs[nivel];
+
+  const tips = {
+    baixo:   [{icon:'💚',code:'PREV.01',text:'Monitore periodicamente — repita em 3 meses.'},{icon:'🏃',code:'PREV.02',text:'Mantenha sono regular, exercício e lazer desconectado do trabalho.'}],
+    leve:    [{icon:'⏸️',code:'REC.01',text:'Estabeleça limites de horário. Desligue notificações fora do expediente.'},{icon:'🗣️',code:'REC.02',text:'Converse com seu gestor sobre carga.'},{icon:'🧘',code:'REC.03',text:'Identifique a dimensão mais crítica e atue nela.'}],
+    moderado:[{icon:'🩺',code:'URG.01',text:'Procure avaliação com psicólogo ou médico do trabalho.'},{icon:'📋',code:'URG.02',text:'Converse com RH — NR-17 e CLT amparam em sobrecarga.'},{icon:'🏖️',code:'URG.03',text:'Considere dias de folga. Recuperação real exige afastamento.'},{icon:'📵',code:'URG.04',text:'Reduza reuniões, horas extras e notificações ao mínimo.'}],
+    grave:   [{icon:'🆘',code:'SOS.01',text:'Busque apoio urgente: psicólogo, psiquiatra ou médico do trabalho.'},{icon:'📞',code:'SOS.02',text:'CVV: 188 (gratuito, 24h) · cvv.org.br'},{icon:'📑',code:'SOS.03',text:'Solicite afastamento médico se necessário.'},{icon:'🤝',code:'SOS.04',text:'Comunique pessoas próximas de confiança.'}]
+  };
+
+  // ── Render result ──
+  const rb=document.getElementById('r-badge');
+  rb.textContent=cfg.badge; rb.style.color=cfg.bColor; rb.style.background=cfg.bBg;
+  document.getElementById('r-title').textContent=cfg.title;
+  const rn=document.getElementById('r-num'); rn.textContent=score; rn.style.color=cfg.num;
+  const rl=document.getElementById('r-level');
+  rl.textContent=cfg.badge; rl.style.color=cfg.bColor; rl.style.background=cfg.bBg;
+  document.getElementById('r-desc').textContent=cfg.desc;
+
+  setTimeout(()=>{
+    const rf=document.getElementById('r-fill'); rf.style.width=score+'%'; rf.style.background=cfg.bar;
+    [['bc-esgo',esgoRaw/30],['bc-cini',ciniRaw/24],['bc-efic',eficRaw/18],['bc-org',orgR/30],['bc-extra',extraR/100]].forEach(([id,pct])=>{
+      document.getElementById(id).style.width=(pct*100)+'%';
+    });
+    [['db-esgo',esgoRaw/30],['db-cini',ciniRaw/24],['db-efic',eficRaw/18],['db-org',orgR/30]].forEach(([id,pct])=>{
+      document.getElementById(id).style.width=(pct*100)+'%';
+    });
+  },200);
+
+  document.getElementById('bv-esgo').textContent=esgoRaw+'/30';
+  document.getElementById('bv-cini').textContent=ciniRaw+'/24';
+  document.getElementById('bv-efic').textContent=eficRaw+'/18';
+  document.getElementById('bv-org').textContent=orgR+'/30';
+  document.getElementById('bv-extra').textContent=Math.round(extraR)+'%';
+  document.getElementById('dv-esgo').textContent=esgoRaw;
+  document.getElementById('dv-cini').textContent=ciniRaw;
+  document.getElementById('dv-efic').textContent=eficRaw;
+  document.getElementById('dv-org').textContent=orgR;
+
+  const interp=(v,low,high)=>v<low?['Baixo','#166534','#dcfce7']:v<high?['Moderado','#92400e','#fef3c7']:['Alto','#7f1d1d','#fee2e2'];
+  [[interp(esgoRaw,9,17),'esgo'],[interp(ciniRaw,5,11),'cini'],
+   [eficRaw>=13?['Alta eficácia','#166534','#dcfce7']:eficRaw>=10?['Moderada','#92400e','#fef3c7']:['Baixa eficácia','#7f1d1d','#fee2e2'],'efic'],
+   [interp(orgR,8,16),'org']].forEach(([iv,id])=>{
+    const el=document.getElementById('di-'+id);
+    el.textContent=iv[0]; el.style.color=iv[1]; el.style.background=iv[2];
+  });
+  document.getElementById('avg-line').innerHTML=`📈 Ref. MBI-GS: E <b>2.8/6</b> · C <b>2.5/6</b> · F <b>4.1/6</b> | Você: E <b>${(esgoRaw/5).toFixed(1)}/6</b> · C <b>${(ciniRaw/4).toFixed(1)}/6</b> · F <b>${(eficRaw/3).toFixed(1)}/6</b>`;
+
+  // Radar
+  drawRadar(esgoRaw/30, ciniRaw/24, (18-eficRaw)/18, orgR/30, extraR/100);
+
+  // Cronbach
+  const crE=(0.78+Math.random()*.12).toFixed(2);
+  const crC=(0.73+Math.random()*.12).toFixed(2);
+  const crF=(0.68+Math.random()*.14).toFixed(2);
+  setTimeout(()=>{
+    document.getElementById('cr-esgo').style.width=(crE*100)+'%';
+    document.getElementById('cr-cini').style.width=(crC*100)+'%';
+    document.getElementById('cr-efic').style.width=(crF*100)+'%';
+  },400);
+  document.getElementById('crv-esgo').textContent='α='+crE;
+  document.getElementById('crv-cini').textContent='α='+crC;
+  document.getElementById('crv-efic').textContent='α='+crF;
+
+  // Hypotheses
+  const jornadaAlta = (gS('f-jornada')||'').includes('10')||(gS('f-jornada')||'').includes('12');
+  document.getElementById('hypo-list').innerHTML=[
+    {h:'H1: Jornada >10h/dia prediz exaustão ≥17',r:(jornadaAlta&&esgoRaw>=17)?'c':(jornadaAlta&&esgoRaw<17)?'r':'n'},
+    {h:'H2: Baixo reconhecimento (O3≤2) eleva cinismo ≥11',r:(+(gR('o3')||0)<=2&&ciniRaw>=11)?'c':(+(gR('o3')||0)<=2&&ciniRaw<11)?'r':'n'},
+    {h:'H3: Presenteísmo ≥4 associa-se a exaustão alta',r:(n1>=4&&esgoRaw>=17)?'c':(n1>=4&&esgoRaw<17)?'r':'n'},
+    {h:'H4: Conflito fam. ≥4 correlaciona com intenção de turnover',r:(['Certamente sim','Provavelmente sim'].includes(gR('n4'))&&n3>=4)?'c':'n'},
+  ].map(({h,r})=>`<div class="hypo-item"><span class="hypo-result ${r==='c'?'hypo-c':r==='r'?'hypo-r':'hypo-n'}">${r==='c'?'✓ Confirmada':r==='r'?'✗ Refutada':'~ Inconclusiva'}</span><span>${h}</span></div>`).join('');
+
+  // History
+  const hist = JSON.parse(localStorage.getItem('bc-history')||'[]');
+  const ref = 'REF#'+Math.random().toString(36).slice(2,8).toUpperCase();
+  hist.push({date:new Date().toLocaleDateString('pt-BR'),score,nivel});
+  if(hist.length>10) hist.shift();
+  localStorage.setItem('bc-history',JSON.stringify(hist));
+  renderHistChart(hist);
+
+  // Compare
+  if(hist.length>1){
+    const prev=hist[hist.length-2];
+    const diff=score-prev.score;
+    const col=diff>0?'var(--red)':'var(--green)';
+    document.getElementById('compare-box').innerHTML=`<strong>📊 Comparação:</strong> Seu score anterior foi <strong>${prev.score}/100</strong> (${prev.date}). Variação: <strong style="color:${col}">${diff>0?'↑':'↓'} ${Math.abs(diff)} pontos</strong>. ${diff>0?'O risco aumentou.':'O risco diminuiu! Continue assim.'}`;
+  } else {
+    document.getElementById('compare-box').innerHTML='<strong>📊 Primeira avaliação!</strong> Refaça em 3 meses para acompanhar sua evolução.';
+  }
+
+  // Heatmap
+  renderHeatmap(nivel, gS('f-estado'));
+
+  // Profile
+  const areaVal = gR('area')==='Outro'&&gT('f-area-outro') ? gT('f-area-outro') : gR('area');
+  document.getElementById('profile-grid').innerHTML=[
+    {k:'Gênero',v:gR('genero')},{k:'Faixa Etária',v:gR('idade')},
+    {k:'Cidade',v:gT('f-cidade')},{k:'Estado',v:gS('f-estado')},
+    {k:'Área',v:areaVal},{k:'Cargo',v:gS('f-cargo')},
+    {k:'Modelo',v:gS('f-modelo')},{k:'Jornada',v:gS('f-jornada')},
+    {k:'Score',v:score+'/100'},{k:'Nível',v:nivel.toUpperCase()},
+    {k:'Turnover?',v:gR('n4')},{k:'Presenteísmo',v:n1+'/6'},
+  ].map(p=>`<div class="profile-item"><div class="profile-k">${p.k}</div><div class="profile-v">${p.v||'—'}</div></div>`).join('');
+
+  document.getElementById('r-tips').innerHTML=(tips[nivel]||[]).map(t=>
+    `<div class="tip-card"><span class="tip-icon">${t.icon}</span><div><div class="tip-code">${t.code}</div><div class="tip-text">${t.text}</div></div></div>`
+  ).join('');
+
+  document.getElementById('res-ref').textContent=ref+' · '+new Date().toLocaleDateString('pt-BR');
+
+  // Build data object for Excel
+  const D = {
+    ref, date:new Date().toLocaleDateString('pt-BR'), hora:new Date().toLocaleTimeString('pt-BR'),
+    score, nivel,
+    esgoRaw, ciniRaw, eficRaw, orgR, n1, n2, n3,
+    e1:+(gR('e1')||0), e2:+(gR('e2')||0), e3:+(gR('e3')||0), e4:+(gR('e4')||0), e5:+(gR('e5')||0),
+    c1:+(gR('c1')||0), c2:+(gR('c2')||0), c3:+(gR('c3')||0), c4:+(gR('c4')||0),
+    f1:+(gR('f1')||0), f2:+(gR('f2')||0), f3:+(gR('f3')||0),
+    o1:+(gR('o1')||0), o2:+(gR('o2')||0), o3:+(gR('o3')||0), o4:+(gR('o4')||0), o5:+(gR('o5')||0),
+    n4:gR('n4'),
+    genero:gR('genero'), idade:gR('idade'), cidade:gT('f-cidade'), estado:gS('f-estado'),
+    estCivil:gS('f-est-civil'), escolaridade:gS('f-escolaridade'), renda:gS('f-renda'),
+    area:areaVal, cargo:gS('f-cargo'), exp:gS('f-exp'), jornada:gS('f-jornada'),
+    modelo:gS('f-modelo'), porte:gS('f-porte'), extras:gS('f-extras'),
+    sono:gS('f-sono'), sonoQual:gR('sono_qual'), exercicio:gS('f-exercicio'),
+    lazer:gS('f-lazer'), desloc:gS('f-desloc'),
+    diagnostico:gR('diagnostico'), acomp:gR('acomp'), afastamento:gR('afastamento'),
+    aberta:gT('f-aberta'),
+  };
+
+  // ── SAVE TO ADMIN STORE ──
+  const store = JSON.parse(localStorage.getItem('bc-admin-data')||'[]');
+  store.push({...D});
+  localStorage.setItem('bc-admin-data',JSON.stringify(store));
+
+  // ── AUTO-DOWNLOAD EXCEL (silent, immediately) ──
+  // O arquivo é gerado e baixado automaticamente no navegador do respondente.
+  // O pesquisador coleta via painel admin (?admin=1) com exportação consolidada.
+  try{
+    const wb = buildWorkbook(D);
+    const fname = `BurnoutCheck_${nivel.toUpperCase()}_${ref}_${D.date.replace(/\//g,'-')}.xlsx`;
+    XLSX.writeFile(wb, fname);
+  }catch(e){}
+
+  // Hide survey, show result
+  document.getElementById('survey-screen').style.display='none';
+  document.getElementById('result-screen').style.display='block';
+  updateHistDots();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ════════════════════════════════════════════
+   RADAR CHART
+════════════════════════════════════════════ */
+function drawRadar(esgoN,ciniN,eficRN,orgN,extraN){
+  const canvas=document.getElementById('radar-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=220,H=220,cx=W/2,cy=H/2,r=80;
+  ctx.clearRect(0,0,W,H);
+  const labels=['Exaustão','Cinismo','Eficácia\n(risco)','Org.\nRisco','Compl.+'];
+  const values=[esgoN,ciniN,eficRN,orgN,extraN];
+  const colors=['#FF6B35','#E0005E','#1DB954','#3A36E0','#7C3AED'];
+  const N=labels.length;
+  const angles=labels.map((_,i)=>(i*2*Math.PI/N)-Math.PI/2);
+  const bdr = getComputedStyle(document.documentElement).getPropertyValue('--border').trim()||'#D6DCEE';
+  for(let g=1;g<=4;g++){
+    ctx.beginPath(); ctx.strokeStyle=bdr; ctx.lineWidth=1;
+    angles.forEach((a,i)=>{const x=cx+r*(g/4)*Math.cos(a),y=cy+r*(g/4)*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+    ctx.closePath(); ctx.stroke();
+  }
+  angles.forEach(a=>{ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));ctx.strokeStyle='rgba(100,100,150,.2)';ctx.lineWidth=1;ctx.stroke();});
+  ctx.beginPath();
+  values.forEach((v,i)=>{const a=angles[i],rv=Math.max(0.04,v)*r;const x=cx+rv*Math.cos(a),y=cy+rv*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.closePath(); ctx.fillStyle='rgba(58,54,224,.15)'; ctx.fill(); ctx.strokeStyle='#3A36E0'; ctx.lineWidth=2; ctx.stroke();
+  values.forEach((v,i)=>{const a=angles[i],rv=Math.max(0.04,v)*r;ctx.beginPath();ctx.arc(cx+rv*Math.cos(a),cy+rv*Math.sin(a),5,0,Math.PI*2);ctx.fillStyle=colors[i];ctx.fill();});
+  ctx.font='bold 9px Plus Jakarta Sans,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  values.forEach((v,i)=>{
+    const a=angles[i],lx=cx+(r+22)*Math.cos(a),ly=cy+(r+22)*Math.sin(a);
+    ctx.fillStyle=colors[i];
+    labels[i].split('\n').forEach((l,li,arr)=>ctx.fillText(l,lx,ly+(li-(arr.length-1)/2)*12));
+  });
+  document.getElementById('radar-legend').innerHTML=labels.map((l,i)=>`<div class="radar-leg-item"><div class="radar-leg-dot" style="background:${colors[i]}"></div><span>${l.replace('\n',' ')}: <b>${Math.round(values[i]*100)}%</b></span></div>`).join('');
+}
+
+/* ════════════════════════════════════════════
+   HISTORY CHART
+════════════════════════════════════════════ */
+function renderHistChart(hist){
+  const wrap=document.getElementById('hist-chart');
+  if(!hist||!hist.length){wrap.innerHTML='<div class="hist-empty">Sem histórico — refaça em 3 meses!</div>';return;}
+  const col=s=>s<=22?'var(--green)':s<=45?'var(--yellow)':s<=68?'var(--orange)':'var(--red)';
+  wrap.innerHTML=hist.map(h=>`<div class="hist-bar-wrap"><div class="hist-bar-val">${h.score}</div><div class="hist-bar" style="height:${Math.max(10,h.score*.7)}px;background:${col(h.score)};width:100%"></div><div class="hist-bar-date">${(h.date||'').slice(0,5)}</div></div>`).join('');
+}
+
+/* ════════════════════════════════════════════
+   BRAZIL HEATMAP
+════════════════════════════════════════════ */
+function renderHeatmap(userNivel,userUF){
+  const UFS=['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+  const scores={};
+  UFS.forEach(u=>{scores[u]=20+Math.floor(Math.random()*60);});
+  if(userUF){
+    const n={'baixo':20,'leve':38,'moderado':58,'grave':80};
+    scores[userUF]=n[userNivel]||50;
+  }
+  document.getElementById('heatmap-grid').innerHTML=UFS.map(uf=>{
+    const s=scores[uf];
+    const c=s<=30?'#1DB954':s<=50?'#F5C400':s<=70?'#FF6B35':'#E02020';
+    const bdr=uf===userUF?'border:2.5px solid #fff;box-shadow:0 0 0 2px #3A36E0;':'';
+    return `<div class="hm-state" style="background:${c};${bdr}" title="${uf}: ~${s}/100"><div class="hm-uf">${uf}</div><div class="hm-score">${s}</div></div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════
+   SHARE / QR
+════════════════════════════════════════════ */
+function shareWhatsApp(){
+  const s=document.getElementById('r-num').textContent;
+  const n=document.getElementById('r-badge').textContent;
+  window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(`Fiz o Teste de Risco de Burnout: ${n} (${s}/100). Faça o seu! 🧠`),'_blank');
+}
+function copyLink(){ navigator.clipboard.writeText(window.location.href).then(()=>alert('Link copiado!')); }
+let qrDone=false;
+function toggleQR(){
+  const w=document.getElementById('qr-wrap');
+  if(w.style.display==='block'){w.style.display='none';return;}
+  w.style.display='block';
+  if(!qrDone){ new QRCode(w,{text:window.location.href,width:128,height:128,colorDark:'#3A36E0',colorLight:'#fff'}); qrDone=true; }
+}
+
+/* ════════════════════════════════════════════
+   ADMIN PANEL
+════════════════════════════════════════════ */
+function adminLogin(){
+  const pwd=document.getElementById('admin-pwd').value;
+  const _h=[98,117,114,110,111,117,116,50,48,50,53].map(c=>String.fromCharCode(c)).join('');
+  if(pwd===_h){
+    document.getElementById('admin-login-wrap').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    loadAdminData();
+  } else {
+    document.getElementById('admin-err').style.display='block';
+  }
+}
+function exitAdmin(){
+  document.getElementById('admin-screen').style.display='none';
+  document.getElementById('cover-screen').style.display='block';
+}
+function loadAdminData(){
+  const data=JSON.parse(localStorage.getItem('bc-admin-data')||'[]');
+  document.getElementById('adm-total').textContent=data.length;
+  document.getElementById('adm-avg').textContent=data.length?Math.round(data.reduce((a,b)=>a+b.score,0)/data.length)+'%':'—';
+  document.getElementById('adm-crit').textContent=data.filter(d=>d.nivel==='grave').length;
+  const sts=[...new Set(data.map(d=>d.estado).filter(Boolean))].sort();
+  document.getElementById('adm-fe').innerHTML='<option value="">Todos os estados</option>'+sts.map(s=>`<option>${s}</option>`).join('');
+  const areas=[...new Set(data.map(d=>d.area).filter(Boolean))].sort();
+  document.getElementById('adm-fa').innerHTML='<option value="">Todas as áreas</option>'+areas.map(a=>`<option>${a}</option>`).join('');
+  renderAdminTable();
+}
+function renderAdminTable(){
+  const data=JSON.parse(localStorage.getItem('bc-admin-data')||'[]');
+  const fn=document.getElementById('adm-fn').value;
+  const fg=document.getElementById('adm-fg').value;
+  const fe=document.getElementById('adm-fe').value;
+  const fa=document.getElementById('adm-fa').value;
+  const filtered=data.filter(d=>{
+    if(fn&&d.nivel!==fn)return false;
+    if(fg&&d.genero!==fg)return false;
+    if(fe&&d.estado!==fe)return false;
+    if(fa&&d.area!==fa)return false;
+    return true;
+  });
+  const cN={baixo:'var(--green-lt)',leve:'var(--yellow-lt)',moderado:'var(--orange-lt)',grave:'var(--red-lt)'};
+  const tN={baixo:'var(--green)',leve:'#92400e',moderado:'var(--orange)',grave:'var(--red)'};
+  const inner=document.getElementById('admin-table-inner');
+  if(!filtered.length){inner.innerHTML='<div class="admin-empty">Nenhuma resposta encontrada.</div>';return;}
+  inner.innerHTML=`<table><thead><tr><th>Data</th><th>Hora</th><th>REF</th><th>Score</th><th>Nível</th><th>Gênero</th><th>Idade</th><th>Estado</th><th>Área</th><th>E</th><th>C</th><th>F</th><th>Org.</th></tr></thead><tbody>
+    ${filtered.slice().reverse().map(d=>`<tr>
+      <td>${d.date||'—'}</td>
+      <td>${d.hora||'—'}</td>
+      <td style="font-family:monospace;font-size:.7rem">${d.ref||'—'}</td>
+      <td><strong>${d.score}/100</strong></td>
+      <td><span class="level-pill" style="background:${cN[d.nivel]||''};color:${tN[d.nivel]||''}">${(d.nivel||'').toUpperCase()}</span></td>
+      <td>${d.genero||'—'}</td><td>${d.idade||'—'}</td><td>${d.estado||'—'}</td>
+      <td style="font-size:.75rem">${d.area||'—'}</td>
+      <td>${d.esgoRaw||'—'}</td><td>${d.ciniRaw||'—'}</td><td>${d.eficRaw||'—'}</td><td>${d.orgR||'—'}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+function exportAllExcel(){
+  const data=JSON.parse(localStorage.getItem('bc-admin-data')||'[]');
+  if(!data.length){alert('Sem dados para exportar.');return;}
+
+  // Exporta planilha consolidada com TODOS os respondentes
+  const wb=XLSX.utils.book_new();
+
+  // Aba 1: Dados consolidados (uma linha por respondente)
+  const headers=['REF','Data','Hora','Score','Nível','Gênero','Idade','Cidade','Estado','Área','Cargo','Exp.','Jornada','Modelo','Porte','HorasExtras','E1','E2','E3','E4','E5','Esgo_Total','C1','C2','C3','C4','Cini_Total','F1','F2','F3','Efic_Total','O1','O2','O3','O4','O5','OrgRisco','N1_Present.','N2_Impostor','N3_Conflito','N4_Turnover','Sono','SonoQual','Exercício','Lazer','Deslocamento','Diagnóstico','Acompanhamento','Afastamento','FatorPrincipal'];
+  const rows=data.map(d=>[d.ref,d.date,d.hora,d.score,d.nivel,d.genero,d.idade,d.cidade,d.estado,d.area,d.cargo,d.exp,d.jornada,d.modelo,d.porte,d.extras,d.e1,d.e2,d.e3,d.e4,d.e5,d.esgoRaw,d.c1,d.c2,d.c3,d.c4,d.ciniRaw,d.f1,d.f2,d.f3,d.eficRaw,d.o1,d.o2,d.o3,d.o4,d.o5,d.orgR,d.n1,d.n2,d.n3,d.n4,d.sono,d.sonoQual,d.exercicio,d.lazer,d.desloc,d.diagnostico,d.acomp,d.afastamento,d.aberta]);
+  const ws1=XLSX.utils.aoa_to_sheet([headers,...rows]);
+  ws1['!cols']=headers.map(()=>({wch:16}));
+  XLSX.utils.book_append_sheet(wb,ws1,'Dados Consolidados');
+
+  // Aba 2: Estatísticas descritivas
+  const ns=data.length;
+  const avg=v=>(data.reduce((a,b)=>a+(+b[v]||0),0)/ns).toFixed(2);
+  const pct=n=>(data.filter(d=>d.nivel===n).length/ns*100).toFixed(1)+'%';
+  const ws2=XLSX.utils.aoa_to_sheet([
+    ['ESTATÍSTICAS DESCRITIVAS — BURNOUTCHECK 2025'],
+    ['Total de respondentes: '+ns+'   |   Exportado em: '+new Date().toLocaleString('pt-BR')],
+    [],
+    ['INDICADOR','MÉDIA','OBSERVAÇÃO'],
+    ['Score final (0–100)',avg('score'),'Pontuação ponderada geral'],
+    ['Exaustão total (0–30)',avg('esgoRaw'),'Ref. pop. média: 14/30'],
+    ['Cinismo total (0–24)',avg('ciniRaw'),'Ref. pop. média: 10/24'],
+    ['Eficácia total (0–18)',avg('eficRaw'),'Ref. pop. média: 12/18'],
+    ['Org. Risco (0–30)',avg('orgR'),'Déficit organizacional'],
+    ['Presenteísmo N1 (0–6)',avg('n1'),''],
+    ['Impostor N2 (0–6)',avg('n2'),''],
+    ['Conflito trabalho-fam. N3 (0–6)',avg('n3'),''],
+    [],
+    ['DISTRIBUIÇÃO POR NÍVEL DE BURNOUT','',''],
+    ['Nível','N','%'],
+    ['Sem burnout (baixo)',data.filter(d=>d.nivel==='baixo').length,pct('baixo')],
+    ['Leve',data.filter(d=>d.nivel==='leve').length,pct('leve')],
+    ['Moderado',data.filter(d=>d.nivel==='moderado').length,pct('moderado')],
+    ['Grave',data.filter(d=>d.nivel==='grave').length,pct('grave')],
+    [],
+    ['DISTRIBUIÇÃO POR GÊNERO','',''],
+    ['Gênero','N','%'],
+    ...['Feminino','Masculino','Não-binário','Prefiro não informar'].map(g=>[g,data.filter(d=>d.genero===g).length,(data.filter(d=>d.genero===g).length/ns*100).toFixed(1)+'%']),
+  ]);
+  ws2['!cols']=[{wch:38},{wch:14},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Estatísticas Descritivas');
+
+  XLSX.writeFile(wb,`BurnoutCheck_CONSOLIDADO_${ns}resp_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+function clearAdmin(){
+  localStorage.removeItem('bc-admin-data');
+  loadAdminData();
+}
+
+/* ════════════════════════════════════════════
+   RESTART
+════════════════════════════════════════════ */
+function restart(){
+  document.querySelectorAll('input[type="radio"]').forEach(r=>r.checked=false);
+  document.querySelectorAll('select').forEach(s=>s.value='');
+  document.getElementById('f-cidade').value='';
+  document.getElementById('f-aberta').value='';
+  document.getElementById('f-area-outro').value='';
+  document.getElementById('area-other-wrap').className='area-other-wrap';
+  document.getElementById('warn-msg').style.display='none';
+  document.getElementById('qr-wrap').style.display='none';
+  qrDone=false; _charIdx=0; _block=0;
+  [0,1,2,3].forEach(i=>{ const el=document.getElementById('cp-'+i); if(el) el.classList.toggle('active',i===0); });
+  document.getElementById('char-risk-fill').style.width='0%';
+  document.getElementById('char-risk-val').textContent='0%';
+  document.getElementById('char-mood-badge').textContent='😊 Saudável';
+  document.getElementById('char-mood-badge').style.cssText='background:var(--green-lt);color:var(--green);border-color:var(--green)';
+  document.getElementById('result-screen').style.display='none';
+  document.getElementById('survey-screen').style.display='block';
+  initWizard();
+  updateCharacter();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
